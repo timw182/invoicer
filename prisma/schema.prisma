@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model BusinessProfile {
+  id                     String   @id @default(cuid())
+  name                   String
+  address                String
+  vatId                  String?
+  email                  String?
+  phone                  String?
+  bankName               String?
+  bankIban               String?
+  bankBic                String?
+  logoUrl                String?
+  defaultCurrency        String   @default("EUR")
+  invoicePrefix          String   @default("INV")
+  nextNumber             Int      @default(1)
+  defaultPaymentTermDays Int      @default(30)
+  smallBusinessExemption Boolean  @default(false)
+  exemptionNote          String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+model Client {
+  id        String    @id @default(cuid())
+  name      String
+  email     String?
+  address   String
+  country   String    @default("DE")
+  taxId     String?
+  phone     String?
+  notes     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  invoices  Invoice[]
+}
+
+model Service {
+  id          String            @id @default(cuid())
+  name        String
+  description String?
+  unitPrice   Float
+  unit        String            @default("hour")
+  taxRate     Float             @default(19.0)
+  active      Boolean           @default(true)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  lineItems   InvoiceLineItem[]
+}
+
+model Invoice {
+  id                  String            @id @default(cuid())
+  invoiceNumber       String            @unique
+  status              String            @default("draft")
+  issueDate           DateTime          @default(now())
+  supplyDate          DateTime?
+  dueDate             DateTime
+  currency            String            @default("EUR")
+  supplierName        String
+  supplierAddress     String
+  supplierVatId       String?
+  clientName          String
+  clientAddress       String
+  clientVatId         String?
+  clientCountry       String
+  subtotal            Float             @default(0)
+  totalVat            Float             @default(0)
+  total               Float             @default(0)
+  reverseCharge       Boolean           @default(false)
+  vatExemptionNote    String?
+  correctionOfInvoice String?
+  notes               String?
+  paymentTermDays     Int               @default(30)
+  clientId            String
+  client              Client            @relation(fields: [clientId], references: [id])
+  lineItems           InvoiceLineItem[]
+  paidAt              DateTime?
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+}
+
+model InvoiceLineItem {
+  id          String   @id @default(cuid())
+  description String
+  quantity    Float
+  unit        String   @default("hour")
+  unitPrice   Float
+  taxRate     Float
+  netAmount   Float
+  vatAmount   Float
+  grossAmount Float
+  sortOrder   Int      @default(0)
+  invoiceId   String
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  serviceId   String?
+  service     Service? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+}
