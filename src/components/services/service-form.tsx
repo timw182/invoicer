@@ -14,6 +14,7 @@ import { Select } from "@/components/ui/select";
 const UNIT_OPTIONS = [
   { value: "hour", label: "Hour" },
   { value: "piece", label: "Piece" },
+  { value: "kg", label: "Kilogram (kg)" },
   { value: "project", label: "Project" },
   { value: "day", label: "Day" },
   { value: "flat", label: "Flat Rate" },

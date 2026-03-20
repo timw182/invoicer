@@ -29,8 +29,8 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
   return (
     <div className="space-y-6">
       <PageHeader
-        title={`Invoice ${invoice.invoiceNumber}`}
-        description={`Client: ${invoice.client.name}`}
+        title={invoice.invoiceNumber}
+        description={invoice.client.name}
         action={<StatusBadge status={invoice.status} />}
       />
 

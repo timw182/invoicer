@@ -12,6 +12,7 @@ import {
 import { StatusBadge } from "@/components/invoices/status-badge";
 import { formatDate } from "@/lib/utils";
 import { formatCurrency } from "@/lib/currency";
+import { FileText } from "lucide-react";
 
 interface InvoiceWithClient {
   id: string;
@@ -21,10 +22,7 @@ interface InvoiceWithClient {
   dueDate: string | Date;
   total: number;
   currency: string;
-  client: {
-    id: string;
-    name: string;
-  };
+  client: { id: string; name: string };
 }
 
 interface InvoiceTableProps {
@@ -34,47 +32,54 @@ interface InvoiceTableProps {
 export function InvoiceTable({ invoices }: InvoiceTableProps) {
   const router = useRouter();
 
+  if (invoices.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 text-center">
+        <div className="rounded-full bg-muted p-3 mb-3">
+          <FileText className="h-6 w-6 text-muted-foreground" />
+        </div>
+        <p className="text-sm font-medium text-muted-foreground">No invoices found</p>
+      </div>
+    );
+  }
+
   return (
     <Table>
       <TableHeader>
-        <TableRow>
-          <TableHead>Invoice Number</TableHead>
-          <TableHead>Client Name</TableHead>
-          <TableHead>Issue Date</TableHead>
-          <TableHead>Due Date</TableHead>
-          <TableHead className="text-right">Total</TableHead>
-          <TableHead>Status</TableHead>
+        <TableRow className="hover:bg-transparent">
+          <TableHead className="text-xs font-semibold uppercase tracking-wider">Number</TableHead>
+          <TableHead className="text-xs font-semibold uppercase tracking-wider">Client</TableHead>
+          <TableHead className="text-xs font-semibold uppercase tracking-wider">Issued</TableHead>
+          <TableHead className="text-xs font-semibold uppercase tracking-wider">Due</TableHead>
+          <TableHead className="text-xs font-semibold uppercase tracking-wider text-right">Total</TableHead>
+          <TableHead className="text-xs font-semibold uppercase tracking-wider">Status</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {invoices.length === 0 ? (
-          <TableRow>
-            <TableCell colSpan={6} className="text-center text-muted-foreground">
-              No invoices found.
+        {invoices.map((invoice) => (
+          <TableRow
+            key={invoice.id}
+            className="cursor-pointer group"
+            onClick={() => router.push(`/invoices/${invoice.id}`)}
+          >
+            <TableCell className="font-mono text-sm font-medium text-primary">
+              {invoice.invoiceNumber}
+            </TableCell>
+            <TableCell className="text-sm">{invoice.client.name}</TableCell>
+            <TableCell className="text-sm text-muted-foreground">
+              {formatDate(invoice.issueDate)}
+            </TableCell>
+            <TableCell className="text-sm text-muted-foreground">
+              {formatDate(invoice.dueDate)}
+            </TableCell>
+            <TableCell className="text-sm text-right tabular-nums font-medium">
+              {formatCurrency(invoice.total, invoice.currency)}
+            </TableCell>
+            <TableCell>
+              <StatusBadge status={invoice.status} />
             </TableCell>
           </TableRow>
-        ) : (
-          invoices.map((invoice) => (
-            <TableRow
-              key={invoice.id}
-              className="cursor-pointer"
-              onClick={() => router.push(`/invoices/${invoice.id}`)}
-            >
-              <TableCell className="font-medium">
-                {invoice.invoiceNumber}
-              </TableCell>
-              <TableCell>{invoice.client.name}</TableCell>
-              <TableCell>{formatDate(invoice.issueDate)}</TableCell>
-              <TableCell>{formatDate(invoice.dueDate)}</TableCell>
-              <TableCell className="text-right">
-                {formatCurrency(invoice.total, invoice.currency)}
-              </TableCell>
-              <TableCell>
-                <StatusBadge status={invoice.status} />
-              </TableCell>
-            </TableRow>
-          ))
-        )}
+        ))}
       </TableBody>
     </Table>
   );

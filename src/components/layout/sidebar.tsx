@@ -9,6 +9,7 @@ import {
   FileText,
   Settings,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -22,11 +23,14 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="flex w-64 flex-col border-r bg-card">
-      <div className="p-6">
-        <h1 className="text-xl font-bold">Invoicer</h1>
+    <aside className="flex w-60 flex-col border-r bg-card/50">
+      <div className="flex items-center gap-2.5 px-6 py-5 border-b">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-bold">
+          I
+        </div>
+        <span className="text-lg font-semibold tracking-tight">Invoicer</span>
       </div>
-      <nav className="flex-1 space-y-1 px-3">
+      <nav className="flex-1 space-y-0.5 px-3 py-4">
         {navItems.map((item) => {
           const isActive =
             pathname === item.href ||
@@ -37,11 +41,12 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150",
                 isActive
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              }`}
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              )}
             >
               <Icon className="h-4 w-4" />
               {item.label}
@@ -49,6 +54,9 @@ export function Sidebar() {
           );
         })}
       </nav>
+      <div className="border-t px-6 py-4">
+        <p className="text-xs text-muted-foreground">Invoicer v0.1</p>
+      </div>
     </aside>
   );
 }

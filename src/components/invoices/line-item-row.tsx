@@ -5,6 +5,7 @@ import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { calculateLineItem } from "@/lib/vat";
 import { formatCurrency } from "@/lib/currency";
+import { Trash2 } from "lucide-react";
 
 interface ServiceOption {
   id: string;
@@ -70,13 +71,14 @@ export function LineItemRow({
   }
 
   return (
-    <div className="grid grid-cols-12 gap-2 items-start border-b pb-3 mb-3">
+    <div className="group grid grid-cols-12 gap-2 items-start rounded-lg border border-transparent hover:border-border hover:bg-muted/30 px-2 py-2.5 -mx-2 transition-colors">
       <div className="col-span-2">
         <Select
           value={value.serviceId || ""}
           onChange={(e) => handleServiceChange(e.target.value)}
+          className="text-xs"
         >
-          <option value="">Select service...</option>
+          <option value="">Service...</option>
           {services.map((s) => (
             <option key={s.id} value={s.id}>
               {s.name}
@@ -89,6 +91,7 @@ export function LineItemRow({
           value={value.description}
           onChange={(e) => handleChange("description", e.target.value)}
           placeholder="Description"
+          className="text-sm"
         />
       </div>
       <div className="col-span-1">
@@ -99,18 +102,21 @@ export function LineItemRow({
           placeholder="Qty"
           min={0}
           step="0.01"
+          className="text-sm"
         />
       </div>
       <div className="col-span-1">
         <Select
           value={value.unit}
           onChange={(e) => handleChange("unit", e.target.value)}
+          className="text-xs"
         >
           <option value="hour">hour</option>
           <option value="day">day</option>
           <option value="piece">piece</option>
+          <option value="kg">kg</option>
           <option value="project">project</option>
-          <option value="month">month</option>
+          <option value="flat">flat</option>
         </Select>
       </div>
       <div className="col-span-1">
@@ -121,6 +127,7 @@ export function LineItemRow({
           placeholder="Price"
           min={0}
           step="0.01"
+          className="text-sm"
         />
       </div>
       <div className="col-span-1">
@@ -131,28 +138,27 @@ export function LineItemRow({
           placeholder="Tax %"
           min={0}
           step="0.01"
+          className="text-sm"
         />
       </div>
-      <div className="col-span-2 flex items-center gap-2 pt-2 text-sm">
-        <span className="whitespace-nowrap" title="Net">
-          {formatCurrency(netAmount, currency)}
+      <div className="col-span-2 flex flex-col items-end justify-center gap-0.5 pt-1.5 text-xs tabular-nums">
+        <span className="text-muted-foreground">
+          Net {formatCurrency(netAmount, currency)}
         </span>
-        <span className="text-muted-foreground whitespace-nowrap" title="VAT">
-          +{formatCurrency(vatAmount, currency)}
-        </span>
-        <span className="font-medium whitespace-nowrap" title="Gross">
-          ={formatCurrency(grossAmount, currency)}
+        <span className="font-semibold text-sm">
+          {formatCurrency(grossAmount, currency)}
         </span>
       </div>
-      <div className="col-span-1 flex justify-end pt-1">
+      <div className="col-span-1 flex justify-end pt-1.5">
         <Button
           type="button"
           variant="ghost"
           size="icon"
           onClick={() => onRemove(index)}
+          className="h-8 w-8 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-destructive transition-opacity"
           aria-label="Remove line item"
         >
-          X
+          <Trash2 className="h-3.5 w-3.5" />
         </Button>
       </div>
     </div>

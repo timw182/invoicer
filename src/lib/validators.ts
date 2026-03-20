@@ -14,7 +14,7 @@ export const serviceSchema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
   unitPrice: z.number().positive("Unit price must be positive"),
-  unit: z.enum(["hour", "piece", "project", "day", "flat"]),
+  unit: z.enum(["hour", "piece", "project", "day", "flat", "kg"]),
   taxRate: z.number().min(0).max(100).default(19),
 });
 

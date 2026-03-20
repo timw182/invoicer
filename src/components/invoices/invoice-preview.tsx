@@ -1,7 +1,6 @@
 import { formatDate } from "@/lib/utils";
 import { formatCurrency } from "@/lib/currency";
-import { calculateLineItem, getVatBreakdown } from "@/lib/vat";
-import { Separator } from "@/components/ui/separator";
+import { getVatBreakdown } from "@/lib/vat";
 
 interface LineItem {
   id: string;
@@ -40,10 +39,7 @@ interface InvoicePreviewProps {
     notes?: string | null;
     paymentTermDays: number;
     lineItems: LineItem[];
-    client: {
-      id: string;
-      name: string;
-    };
+    client: { id: string; name: string };
   };
 }
 
@@ -61,146 +57,173 @@ export function InvoicePreview({ invoice }: InvoicePreviewProps) {
   );
 
   return (
-    <div className="mx-auto max-w-4xl rounded-lg border bg-white p-10 shadow-sm">
-      {/* Header */}
-      <div className="flex justify-between mb-8">
-        <div>
-          <h2 className="text-xl font-bold">{invoice.supplierName}</h2>
-          <p className="whitespace-pre-line text-sm text-muted-foreground mt-1">
-            {invoice.supplierAddress}
+    <div className="invoice-paper mx-auto max-w-4xl p-0 overflow-hidden">
+      {/* Colored top bar */}
+      <div className="h-1.5 bg-primary" />
+
+      <div className="p-10">
+        {/* Header */}
+        <div className="flex justify-between mb-10">
+          <div>
+            <h2 className="text-xl font-semibold text-foreground">
+              {invoice.supplierName}
+            </h2>
+            <p className="whitespace-pre-line text-sm text-muted-foreground mt-2 leading-relaxed">
+              {invoice.supplierAddress}
+            </p>
+            {invoice.supplierVatId && (
+              <p className="text-sm text-muted-foreground mt-1">
+                VAT ID: {invoice.supplierVatId}
+              </p>
+            )}
+          </div>
+          <div className="text-right">
+            <h1 className="text-3xl font-bold tracking-tight text-primary mb-3">
+              INVOICE
+            </h1>
+            <div className="text-sm space-y-1.5">
+              <div className="flex justify-end gap-2">
+                <span className="text-muted-foreground">No.</span>
+                <span className="font-mono font-medium">{invoice.invoiceNumber}</span>
+              </div>
+              <div className="flex justify-end gap-2">
+                <span className="text-muted-foreground">Date</span>
+                <span>{formatDate(invoice.issueDate)}</span>
+              </div>
+              {invoice.supplyDate && (
+                <div className="flex justify-end gap-2">
+                  <span className="text-muted-foreground">Supply</span>
+                  <span>{formatDate(invoice.supplyDate)}</span>
+                </div>
+              )}
+              <div className="flex justify-end gap-2">
+                <span className="text-muted-foreground">Due</span>
+                <span className="font-medium">{formatDate(invoice.dueDate)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Bill To */}
+        <div className="mb-10 rounded-lg bg-muted/50 p-5">
+          <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-widest mb-2">
+            Bill To
           </p>
-          {invoice.supplierVatId && (
+          <h3 className="font-semibold text-foreground">{invoice.clientName}</h3>
+          <p className="whitespace-pre-line text-sm text-muted-foreground mt-1 leading-relaxed">
+            {invoice.clientAddress}
+          </p>
+          {invoice.clientVatId && (
             <p className="text-sm text-muted-foreground mt-1">
-              VAT ID: {invoice.supplierVatId}
+              VAT ID: {invoice.clientVatId}
             </p>
           )}
         </div>
-        <div className="text-right">
-          <h1 className="text-2xl font-bold mb-2">INVOICE</h1>
-          <div className="text-sm space-y-1">
-            <p>
-              <span className="text-muted-foreground">Number: </span>
-              <span className="font-medium">{invoice.invoiceNumber}</span>
-            </p>
-            <p>
-              <span className="text-muted-foreground">Issue Date: </span>
-              {formatDate(invoice.issueDate)}
-            </p>
-            {invoice.supplyDate && (
-              <p>
-                <span className="text-muted-foreground">Supply Date: </span>
-                {formatDate(invoice.supplyDate)}
-              </p>
-            )}
-            <p>
-              <span className="text-muted-foreground">Due Date: </span>
-              {formatDate(invoice.dueDate)}
-            </p>
-          </div>
-        </div>
-      </div>
 
-      <Separator className="mb-6" />
-
-      {/* Client */}
-      <div className="mb-8">
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
-          Bill To
-        </p>
-        <h3 className="font-semibold">{invoice.clientName}</h3>
-        <p className="whitespace-pre-line text-sm text-muted-foreground mt-1">
-          {invoice.clientAddress}
-        </p>
-        {invoice.clientVatId && (
-          <p className="text-sm text-muted-foreground mt-1">
-            VAT ID: {invoice.clientVatId}
-          </p>
-        )}
-      </div>
-
-      {/* Line Items Table */}
-      <div className="mb-8">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b-2 border-gray-200">
-              <th className="py-2 text-left font-medium">Description</th>
-              <th className="py-2 text-right font-medium">Qty</th>
-              <th className="py-2 text-left font-medium pl-3">Unit</th>
-              <th className="py-2 text-right font-medium">Unit Price</th>
-              <th className="py-2 text-right font-medium">Tax Rate</th>
-              <th className="py-2 text-right font-medium">Net Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sortedLineItems.map((item) => {
-              const { netAmount } = calculateLineItem(
-                item.quantity,
-                item.unitPrice,
-                item.taxRate
-              );
-              return (
-                <tr key={item.id} className="border-b border-gray-100">
-                  <td className="py-2">{item.description}</td>
-                  <td className="py-2 text-right">{item.quantity}</td>
-                  <td className="py-2 pl-3">{item.unit}</td>
-                  <td className="py-2 text-right">
+        {/* Line Items Table */}
+        <div className="mb-8">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b-2 border-primary/20">
+                <th className="py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Description
+                </th>
+                <th className="py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Qty
+                </th>
+                <th className="py-3 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground pl-2">
+                  Unit
+                </th>
+                <th className="py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Price
+                </th>
+                <th className="py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Tax
+                </th>
+                <th className="py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Amount
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {sortedLineItems.map((item, idx) => (
+                <tr
+                  key={item.id}
+                  className={idx % 2 === 0 ? "bg-transparent" : "bg-muted/30"}
+                >
+                  <td className="py-3 pr-4 font-medium">{item.description}</td>
+                  <td className="py-3 text-right tabular-nums">{item.quantity}</td>
+                  <td className="py-3 text-center pl-2 text-muted-foreground">
+                    {item.unit}
+                  </td>
+                  <td className="py-3 text-right tabular-nums">
                     {formatCurrency(item.unitPrice, invoice.currency)}
                   </td>
-                  <td className="py-2 text-right">{item.taxRate}%</td>
-                  <td className="py-2 text-right">
-                    {formatCurrency(netAmount, invoice.currency)}
+                  <td className="py-3 text-right text-muted-foreground">
+                    {item.taxRate}%
+                  </td>
+                  <td className="py-3 text-right tabular-nums font-medium">
+                    {formatCurrency(item.netAmount, invoice.currency)}
                   </td>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
-      {/* VAT Breakdown and Totals */}
-      <div className="flex justify-end mb-8">
-        <div className="w-72 space-y-2">
-          <div className="flex justify-between text-sm">
-            <span>Subtotal</span>
-            <span>{formatCurrency(invoice.subtotal, invoice.currency)}</span>
-          </div>
-          {vatBreakdown.map((vb) => (
-            <div key={vb.rate} className="flex justify-between text-sm">
-              <span>VAT {vb.rate}%</span>
-              <span>{formatCurrency(vb.vatTotal, invoice.currency)}</span>
+        {/* Totals */}
+        <div className="flex justify-end mb-8">
+          <div className="w-80">
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between py-1">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span className="tabular-nums">
+                  {formatCurrency(invoice.subtotal, invoice.currency)}
+                </span>
+              </div>
+              {vatBreakdown.map((vb) => (
+                <div key={vb.rate} className="flex justify-between py-1">
+                  <span className="text-muted-foreground">VAT {vb.rate}%</span>
+                  <span className="tabular-nums">
+                    {formatCurrency(vb.vatTotal, invoice.currency)}
+                  </span>
+                </div>
+              ))}
             </div>
-          ))}
-          <Separator />
-          <div className="flex justify-between font-bold text-lg">
-            <span>Total</span>
-            <span>{formatCurrency(invoice.total, invoice.currency)}</span>
+            <div className="mt-3 flex justify-between border-t-2 border-primary/20 pt-3">
+              <span className="text-lg font-bold">Total</span>
+              <span className="text-lg font-bold tabular-nums">
+                {formatCurrency(invoice.total, invoice.currency)}
+              </span>
+            </div>
           </div>
         </div>
+
+        {/* Notices */}
+        {invoice.reverseCharge && (
+          <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50/50 px-4 py-3 text-sm text-blue-800">
+            Reverse charge: VAT to be accounted for by the recipient (Art. 196 EU VAT Directive).
+          </div>
+        )}
+
+        {invoice.vatExemptionNote && (
+          <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50/50 px-4 py-3 text-sm text-amber-800">
+            {invoice.vatExemptionNote}
+          </div>
+        )}
+
+        {/* Notes */}
+        {invoice.notes && (
+          <div className="mt-8 pt-6 border-t">
+            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-widest mb-2">
+              Notes
+            </p>
+            <p className="text-sm whitespace-pre-line text-muted-foreground leading-relaxed">
+              {invoice.notes}
+            </p>
+          </div>
+        )}
       </div>
-
-      {/* Reverse Charge Notice */}
-      {invoice.reverseCharge && (
-        <div className="mb-4 rounded border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800">
-          Reverse charge: VAT to be accounted for by the recipient.
-        </div>
-      )}
-
-      {/* VAT Exemption Notice */}
-      {invoice.vatExemptionNote && (
-        <div className="mb-4 rounded border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-          {invoice.vatExemptionNote}
-        </div>
-      )}
-
-      {/* Notes */}
-      {invoice.notes && (
-        <div className="mt-6">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
-            Notes
-          </p>
-          <p className="text-sm whitespace-pre-line">{invoice.notes}</p>
-        </div>
-      )}
     </div>
   );
 }
