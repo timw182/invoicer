@@ -25,11 +25,14 @@ export default async function EditClientPage({ params }: EditClientPageProps) {
         initialData={{
           id: client.id,
           name: client.name,
+          contactPerson: client.contactPerson ?? "",
           email: client.email ?? "",
           address: client.address,
+          billingAddress: client.billingAddress ?? "",
           country: client.country,
           taxId: client.taxId ?? "",
           phone: client.phone ?? "",
+          website: client.website ?? "",
           notes: client.notes ?? "",
         }}
       />

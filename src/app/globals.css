@@ -47,3 +47,48 @@
     box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.04);
   }
 }
+
+@media print {
+  /* Hide everything except the invoice */
+  body * {
+    visibility: hidden;
+  }
+
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+
+  .print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .print-hide {
+    display: none !important;
+  }
+
+  /* Clean white background */
+  body {
+    background: white !important;
+  }
+
+  /* Page setup */
+  @page {
+    margin: 15mm;
+    size: A4;
+  }
+
+  /* Ensure colors print */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}

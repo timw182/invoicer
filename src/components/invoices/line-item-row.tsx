@@ -22,6 +22,7 @@ export interface LineItemData {
   quantity: number;
   unit: string;
   unitPrice: number;
+  discount: number;
   taxRate: number;
 }
 
@@ -45,7 +46,8 @@ export function LineItemRow({
   const { netAmount, vatAmount, grossAmount } = calculateLineItem(
     value.quantity,
     value.unitPrice,
-    value.taxRate
+    value.taxRate,
+    value.discount
   );
 
   function handleServiceChange(serviceId: string) {
@@ -61,6 +63,7 @@ export function LineItemRow({
         unitPrice: service.unitPrice,
         unit: service.unit,
         taxRate: service.taxRate,
+        discount: value.discount,
         quantity: value.quantity,
       });
     }
@@ -71,8 +74,8 @@ export function LineItemRow({
   }
 
   return (
-    <div className="group grid grid-cols-12 gap-2 items-start rounded-lg border border-transparent hover:border-border hover:bg-muted/30 px-2 py-2.5 -mx-2 transition-colors">
-      <div className="col-span-2">
+    <div className="group grid grid-cols-[2fr_3fr_1fr_1fr_1fr_1fr_1fr_2fr_auto] gap-2 items-start rounded-lg border border-transparent hover:border-border hover:bg-muted/30 px-2 py-2.5 -mx-2 transition-colors">
+      <div>
         <Select
           value={value.serviceId || ""}
           onChange={(e) => handleServiceChange(e.target.value)}
@@ -86,7 +89,7 @@ export function LineItemRow({
           ))}
         </Select>
       </div>
-      <div className="col-span-3">
+      <div>
         <Input
           value={value.description}
           onChange={(e) => handleChange("description", e.target.value)}
@@ -94,7 +97,7 @@ export function LineItemRow({
           className="text-sm"
         />
       </div>
-      <div className="col-span-1">
+      <div>
         <Input
           type="number"
           value={value.quantity}
@@ -105,7 +108,7 @@ export function LineItemRow({
           className="text-sm"
         />
       </div>
-      <div className="col-span-1">
+      <div>
         <Select
           value={value.unit}
           onChange={(e) => handleChange("unit", e.target.value)}
@@ -119,7 +122,7 @@ export function LineItemRow({
           <option value="flat">flat</option>
         </Select>
       </div>
-      <div className="col-span-1">
+      <div>
         <Input
           type="number"
           value={value.unitPrice}
@@ -130,7 +133,19 @@ export function LineItemRow({
           className="text-sm"
         />
       </div>
-      <div className="col-span-1">
+      <div>
+        <Input
+          type="number"
+          value={value.discount}
+          onChange={(e) => handleChange("discount", parseFloat(e.target.value) || 0)}
+          placeholder="Disc %"
+          min={0}
+          max={100}
+          step="0.01"
+          className="text-sm"
+        />
+      </div>
+      <div>
         <Input
           type="number"
           value={value.taxRate}
@@ -141,7 +156,7 @@ export function LineItemRow({
           className="text-sm"
         />
       </div>
-      <div className="col-span-2 flex flex-col items-end justify-center gap-0.5 pt-1.5 text-xs tabular-nums">
+      <div className="flex flex-col items-end justify-center gap-0.5 pt-1.5 text-xs tabular-nums">
         <span className="text-muted-foreground">
           Net {formatCurrency(netAmount, currency)}
         </span>
@@ -149,7 +164,7 @@ export function LineItemRow({
           {formatCurrency(grossAmount, currency)}
         </span>
       </div>
-      <div className="col-span-1 flex justify-end pt-1.5">
+      <div className="flex justify-end pt-1.5">
         <Button
           type="button"
           variant="ghost"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Upload, X } from "lucide-react";
 
 interface BusinessProfile {
   id: string;
@@ -20,6 +21,8 @@ interface BusinessProfile {
   bankName: string | null;
   bankIban: string | null;
   bankBic: string | null;
+  logoUrl: string | null;
+  accentColor: string;
   defaultCurrency: string;
   invoicePrefix: string;
   defaultPaymentTermDays: number;
@@ -33,6 +36,7 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     async function fetchProfile() {
@@ -72,6 +76,8 @@ export default function SettingsPage() {
           bankName: profile.bankName || undefined,
           bankIban: profile.bankIban || undefined,
           bankBic: profile.bankBic || undefined,
+          logoUrl: profile.logoUrl || null,
+          accentColor: profile.accentColor,
           defaultCurrency: profile.defaultCurrency,
           invoicePrefix: profile.invoicePrefix,
           defaultPaymentTermDays: profile.defaultPaymentTermDays,
@@ -97,9 +103,25 @@ export default function SettingsPage() {
     }
   }
 
-  function updateField(field: keyof BusinessProfile, value: string | number | boolean) {
+  function updateField(field: keyof BusinessProfile, value: string | number | boolean | null) {
     if (!profile) return;
     setProfile({ ...profile, [field]: value });
+  }
+
+  function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 500 * 1024) {
+      setError("Logo file must be under 500KB");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      updateField("logoUrl", reader.result as string);
+    };
+    reader.readAsDataURL(file);
   }
 
   if (loading) {
@@ -172,6 +194,89 @@ export default function SettingsPage() {
                 value={profile.phone || ""}
                 onChange={(e) => updateField("phone", e.target.value)}
               />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Branding</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Company Logo</Label>
+              <div className="flex items-center gap-4">
+                {profile.logoUrl ? (
+                  <div className="relative">
+                    <img
+                      src={profile.logoUrl}
+                      alt="Company logo"
+                      className="h-16 w-auto max-w-[200px] rounded border object-contain p-1"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateField("logoUrl", null);
+                        if (fileInputRef.current) fileInputRef.current.value = "";
+                      }}
+                      className="absolute -right-2 -top-2 rounded-full bg-destructive p-0.5 text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex h-16 w-32 items-center justify-center rounded border-2 border-dashed border-muted-foreground/25 text-muted-foreground">
+                    <Upload className="h-5 w-5" />
+                  </div>
+                )}
+                <div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/svg+xml"
+                    onChange={handleLogoUpload}
+                    className="hidden"
+                    id="logo-upload"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    {profile.logoUrl ? "Change Logo" : "Upload Logo"}
+                  </Button>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    PNG, JPG, or SVG. Max 500KB.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="accentColor">Accent Color</Label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  id="accentColor"
+                  value={profile.accentColor}
+                  onChange={(e) => updateField("accentColor", e.target.value)}
+                  className="h-10 w-14 cursor-pointer rounded border p-1"
+                />
+                <Input
+                  value={profile.accentColor}
+                  onChange={(e) => updateField("accentColor", e.target.value)}
+                  placeholder="#1e40af"
+                  className="w-32"
+                />
+                <div
+                  className="h-10 flex-1 rounded border"
+                  style={{ backgroundColor: profile.accentColor }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Used for invoice header bar, headings, and accents.
+              </p>
             </div>
           </CardContent>
         </Card>

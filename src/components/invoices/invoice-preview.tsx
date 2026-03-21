@@ -8,11 +8,20 @@ interface LineItem {
   quantity: number;
   unit: string;
   unitPrice: number;
+  discount: number;
   taxRate: number;
   netAmount: number;
   vatAmount: number;
   grossAmount: number;
   sortOrder: number;
+}
+
+interface Branding {
+  logoUrl?: string | null;
+  accentColor?: string;
+  bankName?: string | null;
+  bankIban?: string | null;
+  bankBic?: string | null;
 }
 
 interface InvoicePreviewProps {
@@ -41,14 +50,18 @@ interface InvoicePreviewProps {
     lineItems: LineItem[];
     client: { id: string; name: string };
   };
+  branding?: Branding;
 }
 
-export function InvoicePreview({ invoice }: InvoicePreviewProps) {
+export function InvoicePreview({ invoice, branding }: InvoicePreviewProps) {
+  const accentColor = branding?.accentColor || "hsl(var(--primary))";
+
   const vatBreakdown = getVatBreakdown(
     invoice.lineItems.map((li) => ({
       quantity: li.quantity,
       unitPrice: li.unitPrice,
       taxRate: li.taxRate,
+      discount: li.discount ?? 0,
     }))
   );
 
@@ -56,29 +69,44 @@ export function InvoicePreview({ invoice }: InvoicePreviewProps) {
     (a, b) => a.sortOrder - b.sortOrder
   );
 
+  const hasDiscounts = sortedLineItems.some((li) => (li.discount ?? 0) > 0);
+  const hasBankDetails = branding?.bankName || branding?.bankIban;
+
   return (
-    <div className="invoice-paper mx-auto max-w-4xl p-0 overflow-hidden">
+    <div className="invoice-paper print-area mx-auto max-w-4xl p-0 overflow-hidden">
       {/* Colored top bar */}
-      <div className="h-1.5 bg-primary" />
+      <div className="h-1.5" style={{ backgroundColor: accentColor }} />
 
       <div className="p-10">
         {/* Header */}
         <div className="flex justify-between mb-10">
-          <div>
-            <h2 className="text-xl font-semibold text-foreground">
-              {invoice.supplierName}
-            </h2>
-            <p className="whitespace-pre-line text-sm text-muted-foreground mt-2 leading-relaxed">
-              {invoice.supplierAddress}
-            </p>
-            {invoice.supplierVatId && (
-              <p className="text-sm text-muted-foreground mt-1">
-                VAT ID: {invoice.supplierVatId}
-              </p>
+          <div className="flex items-start gap-4">
+            {branding?.logoUrl && (
+              <img
+                src={branding.logoUrl}
+                alt="Company logo"
+                className="h-14 w-auto max-w-[140px] object-contain"
+              />
             )}
+            <div>
+              <h2 className="text-xl font-semibold text-foreground">
+                {invoice.supplierName}
+              </h2>
+              <p className="whitespace-pre-line text-sm text-muted-foreground mt-2 leading-relaxed">
+                {invoice.supplierAddress}
+              </p>
+              {invoice.supplierVatId && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  VAT ID: {invoice.supplierVatId}
+                </p>
+              )}
+            </div>
           </div>
           <div className="text-right">
-            <h1 className="text-3xl font-bold tracking-tight text-primary mb-3">
+            <h1
+              className="text-3xl font-bold tracking-tight mb-3"
+              style={{ color: accentColor }}
+            >
               INVOICE
             </h1>
             <div className="text-sm space-y-1.5">
@@ -124,7 +152,10 @@ export function InvoicePreview({ invoice }: InvoicePreviewProps) {
         <div className="mb-8">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b-2 border-primary/20">
+              <tr
+                className="border-b-2"
+                style={{ borderColor: `${accentColor}33` }}
+              >
                 <th className="py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Description
                 </th>
@@ -137,6 +168,11 @@ export function InvoicePreview({ invoice }: InvoicePreviewProps) {
                 <th className="py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Price
                 </th>
+                {hasDiscounts && (
+                  <th className="py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Disc.
+                  </th>
+                )}
                 <th className="py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Tax
                 </th>
@@ -159,6 +195,11 @@ export function InvoicePreview({ invoice }: InvoicePreviewProps) {
                   <td className="py-3 text-right tabular-nums">
                     {formatCurrency(item.unitPrice, invoice.currency)}
                   </td>
+                  {hasDiscounts && (
+                    <td className="py-3 text-right text-muted-foreground">
+                      {(item.discount ?? 0) > 0 ? `${item.discount}%` : "—"}
+                    </td>
+                  )}
                   <td className="py-3 text-right text-muted-foreground">
                     {item.taxRate}%
                   </td>
@@ -190,7 +231,10 @@ export function InvoicePreview({ invoice }: InvoicePreviewProps) {
                 </div>
               ))}
             </div>
-            <div className="mt-3 flex justify-between border-t-2 border-primary/20 pt-3">
+            <div
+              className="mt-3 flex justify-between border-t-2 pt-3"
+              style={{ borderColor: `${accentColor}33` }}
+            >
               <span className="text-lg font-bold">Total</span>
               <span className="text-lg font-bold tabular-nums">
                 {formatCurrency(invoice.total, invoice.currency)}
@@ -221,6 +265,39 @@ export function InvoicePreview({ invoice }: InvoicePreviewProps) {
             <p className="text-sm whitespace-pre-line text-muted-foreground leading-relaxed">
               {invoice.notes}
             </p>
+          </div>
+        )}
+
+        {/* Bank Details Footer */}
+        {hasBankDetails && (
+          <div className="mt-8 pt-6 border-t">
+            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-widest mb-2">
+              Payment Details
+            </p>
+            <div className="grid grid-cols-3 gap-4 text-sm text-muted-foreground">
+              {branding?.bankName && (
+                <div>
+                  <span className="text-xs uppercase tracking-wider">Bank</span>
+                  <p className="font-medium text-foreground">{branding.bankName}</p>
+                </div>
+              )}
+              {branding?.bankIban && (
+                <div>
+                  <span className="text-xs uppercase tracking-wider">IBAN</span>
+                  <p className="font-medium text-foreground font-mono text-xs">
+                    {branding.bankIban}
+                  </p>
+                </div>
+              )}
+              {branding?.bankBic && (
+                <div>
+                  <span className="text-xs uppercase tracking-wider">BIC</span>
+                  <p className="font-medium text-foreground font-mono text-xs">
+                    {branding.bankBic}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

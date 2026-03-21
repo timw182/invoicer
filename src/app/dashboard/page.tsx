@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { PageHeader } from "@/components/layout/page-header";
 import { StatsCards } from "@/components/dashboard/stats-cards";
 import { OverdueList } from "@/components/dashboard/overdue-list";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, RefreshCw } from "lucide-react";
 
 interface DashboardStats {
   totalRevenue: number;
@@ -25,26 +25,36 @@ interface DashboardStats {
   }>;
 }
 
+const POLL_INTERVAL = 30000;
+
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  const fetchStats = useCallback(async (isManual = false) => {
+    if (isManual) setRefreshing(true);
+    try {
+      const res = await fetch("/api/dashboard/stats");
+      if (res.ok) {
+        const data = await res.json();
+        setStats(data);
+        setLastUpdated(new Date());
+      }
+    } catch (error) {
+      console.error("Failed to fetch dashboard stats:", error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
 
   useEffect(() => {
-    async function fetchStats() {
-      try {
-        const res = await fetch("/api/dashboard/stats");
-        if (res.ok) {
-          const data = await res.json();
-          setStats(data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch dashboard stats:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
     fetchStats();
-  }, []);
+    const interval = setInterval(() => fetchStats(), POLL_INTERVAL);
+    return () => clearInterval(interval);
+  }, [fetchStats]);
 
   if (loading) {
     return (
@@ -82,12 +92,28 @@ export default function DashboardPage() {
         title="Dashboard"
         description="Overview of your invoicing"
         action={
-          <Link href="/invoices/new">
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              New Invoice
+          <div className="flex items-center gap-2">
+            {lastUpdated && (
+              <span className="text-xs text-muted-foreground">
+                Updated {lastUpdated.toLocaleTimeString()}
+              </span>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fetchStats(true)}
+              disabled={refreshing}
+            >
+              <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${refreshing ? "animate-spin" : ""}`} />
+              Refresh
             </Button>
-          </Link>
+            <Link href="/invoices/new">
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                New Invoice
+              </Button>
+            </Link>
+          </div>
         }
       />
       <StatsCards stats={stats} />

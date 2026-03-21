@@ -74,10 +74,12 @@ export async function PUT(
 
     const invoice = await prisma.$transaction(async (tx) => {
       const processedLineItems = data.lineItems.map((item, index) => {
+        const discount = item.discount ?? 0;
         const { netAmount, vatAmount, grossAmount } = calculateLineItem(
           item.quantity,
           item.unitPrice,
-          item.taxRate
+          item.taxRate,
+          discount
         );
 
         return {
@@ -85,6 +87,7 @@ export async function PUT(
           quantity: item.quantity,
           unitPrice: item.unitPrice,
           unit: item.unit,
+          discount,
           taxRate: item.taxRate,
           netAmount,
           vatAmount,

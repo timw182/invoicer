@@ -54,6 +54,7 @@ interface InitialData {
     quantity: number;
     unit: string;
     unitPrice: number;
+    discount?: number;
     taxRate: number;
   }>;
 }
@@ -76,6 +77,7 @@ const emptyLineItem: LineItemData = {
   quantity: 1,
   unit: "hour",
   unitPrice: 0,
+  discount: 0,
   taxRate: 19,
 };
 
@@ -109,6 +111,7 @@ export function InvoiceForm({
       quantity: li.quantity,
       unit: li.unit,
       unitPrice: li.unitPrice,
+      discount: li.discount ?? 0,
       taxRate: businessProfile.smallBusinessExemption ? 0 : li.taxRate,
     })) || [
       {
@@ -145,7 +148,8 @@ export function InvoiceForm({
       const { netAmount, vatAmount } = calculateLineItem(
         item.quantity,
         item.unitPrice,
-        item.taxRate
+        item.taxRate,
+        item.discount
       );
       subtotal += netAmount;
       totalVat += vatAmount;
@@ -209,6 +213,7 @@ export function InvoiceForm({
           quantity: li.quantity,
           unit: li.unit,
           unitPrice: li.unitPrice,
+          discount: li.discount,
           taxRate: li.taxRate,
           sortOrder: i,
         })),
@@ -341,15 +346,16 @@ export function InvoiceForm({
           <CardTitle>Line Items</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="mb-3 grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground">
-            <div className="col-span-2">Service</div>
-            <div className="col-span-3">Description</div>
-            <div className="col-span-1">Qty</div>
-            <div className="col-span-1">Unit</div>
-            <div className="col-span-1">Price</div>
-            <div className="col-span-1">Tax %</div>
-            <div className="col-span-2">Amounts</div>
-            <div className="col-span-1" />
+          <div className="mb-3 grid grid-cols-[2fr_3fr_1fr_1fr_1fr_1fr_1fr_2fr_auto] gap-2 text-xs font-medium text-muted-foreground">
+            <div>Service</div>
+            <div>Description</div>
+            <div>Qty</div>
+            <div>Unit</div>
+            <div>Price</div>
+            <div>Disc %</div>
+            <div>Tax %</div>
+            <div>Amounts</div>
+            <div className="w-8" />
           </div>
           {effectiveLineItems.map((item, index) => (
             <LineItemRow

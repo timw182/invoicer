@@ -13,6 +13,7 @@ import { StatusBadge } from "@/components/invoices/status-badge";
 import { formatDate } from "@/lib/utils";
 import { formatCurrency } from "@/lib/currency";
 import { FileText } from "lucide-react";
+import { differenceInDays } from "date-fns";
 
 interface InvoiceWithClient {
   id: string;
@@ -20,6 +21,7 @@ interface InvoiceWithClient {
   status: string;
   issueDate: string | Date;
   dueDate: string | Date;
+  paidAt?: string | Date | null;
   total: number;
   currency: string;
   client: { id: string; name: string };
@@ -27,6 +29,42 @@ interface InvoiceWithClient {
 
 interface InvoiceTableProps {
   invoices: InvoiceWithClient[];
+}
+
+function DueInfo({ status, dueDate }: { status: string; dueDate: string | Date }) {
+  const due = new Date(dueDate);
+  const now = new Date();
+  const daysOverdue = differenceInDays(now, due);
+
+  if (status === "overdue") {
+    return (
+      <div>
+        <span className="text-sm">{formatDate(dueDate)}</span>
+        <span className="block text-xs font-medium text-red-600">
+          {daysOverdue}d overdue
+        </span>
+      </div>
+    );
+  }
+
+  if (status === "sent" && daysOverdue >= -3 && daysOverdue < 0) {
+    return (
+      <div>
+        <span className="text-sm">{formatDate(dueDate)}</span>
+        <span className="block text-xs font-medium text-amber-600">
+          Due in {Math.abs(daysOverdue)}d
+        </span>
+      </div>
+    );
+  }
+
+  if (status === "paid") {
+    return (
+      <span className="text-sm text-muted-foreground">{formatDate(dueDate)}</span>
+    );
+  }
+
+  return <span className="text-sm text-muted-foreground">{formatDate(dueDate)}</span>;
 }
 
 export function InvoiceTable({ invoices }: InvoiceTableProps) {
@@ -59,7 +97,9 @@ export function InvoiceTable({ invoices }: InvoiceTableProps) {
         {invoices.map((invoice) => (
           <TableRow
             key={invoice.id}
-            className="cursor-pointer group"
+            className={`cursor-pointer group ${
+              invoice.status === "overdue" ? "bg-red-50/50" : ""
+            }`}
             onClick={() => router.push(`/invoices/${invoice.id}`)}
           >
             <TableCell className="font-mono text-sm font-medium text-primary">
@@ -69,8 +109,8 @@ export function InvoiceTable({ invoices }: InvoiceTableProps) {
             <TableCell className="text-sm text-muted-foreground">
               {formatDate(invoice.issueDate)}
             </TableCell>
-            <TableCell className="text-sm text-muted-foreground">
-              {formatDate(invoice.dueDate)}
+            <TableCell>
+              <DueInfo status={invoice.status} dueDate={invoice.dueDate} />
             </TableCell>
             <TableCell className="text-sm text-right tabular-nums font-medium">
               {formatCurrency(invoice.total, invoice.currency)}

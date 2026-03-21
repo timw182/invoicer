@@ -11,6 +11,8 @@ const defaultProfile = {
   bankName: "",
   bankIban: "",
   bankBic: "",
+  logoUrl: null as string | null,
+  accentColor: "#1e40af",
   defaultCurrency: "EUR",
   invoicePrefix: "INV",
   defaultPaymentTermDays: 30,

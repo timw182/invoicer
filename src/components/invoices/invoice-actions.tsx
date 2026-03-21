@@ -54,8 +54,12 @@ export function InvoiceActions({ invoiceId, status }: InvoiceActionsProps) {
     }
   }
 
+  function handlePrint() {
+    window.print();
+  }
+
   return (
-    <div className="flex items-center gap-2 flex-wrap">
+    <div className="print-hide flex items-center gap-2 flex-wrap">
       {status === "draft" && (
         <>
           <Link href={`/invoices/${invoiceId}/edit`}>
@@ -119,12 +123,10 @@ export function InvoiceActions({ invoiceId, status }: InvoiceActionsProps) {
         </Button>
       )}
 
-      <Link href={`/api/invoices/${invoiceId}/pdf`}>
-        <Button variant="outline" size="sm">
-          <Download className="h-3.5 w-3.5 mr-1.5" />
-          PDF
-        </Button>
-      </Link>
+      <Button variant="outline" size="sm" onClick={handlePrint}>
+        <Download className="h-3.5 w-3.5 mr-1.5" />
+        PDF
+      </Button>
     </div>
   );
 }

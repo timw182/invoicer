@@ -78,6 +78,7 @@ export async function POST(request: NextRequest) {
 
       const processedLineItems = data.lineItems.map((item, index) => {
         let taxRate = item.taxRate;
+        const discount = item.discount ?? 0;
 
         if (profile.smallBusinessExemption) {
           taxRate = 0;
@@ -88,7 +89,8 @@ export async function POST(request: NextRequest) {
         const { netAmount, vatAmount, grossAmount } = calculateLineItem(
           item.quantity,
           item.unitPrice,
-          taxRate
+          taxRate,
+          discount
         );
 
         return {
@@ -96,6 +98,7 @@ export async function POST(request: NextRequest) {
           quantity: item.quantity,
           unitPrice: item.unitPrice,
           unit: item.unit,
+          discount,
           taxRate,
           netAmount,
           vatAmount,
@@ -132,7 +135,7 @@ export async function POST(request: NextRequest) {
           supplierAddress: profile.address,
           supplierVatId: profile.vatId,
           clientName: client.name,
-          clientAddress: client.address,
+          clientAddress: client.billingAddress || client.address,
           clientVatId: client.taxId,
           clientCountry: client.country,
           subtotal,

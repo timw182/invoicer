@@ -7,12 +7,15 @@ export const EU_COUNTRIES = [
 export function calculateLineItem(
   quantity: number,
   unitPrice: number,
-  taxRate: number
-): { netAmount: number; vatAmount: number; grossAmount: number } {
-  const netAmount = Math.round(quantity * unitPrice * 100) / 100;
+  taxRate: number,
+  discount: number = 0
+): { netAmount: number; discountAmount: number; vatAmount: number; grossAmount: number } {
+  const rawNet = Math.round(quantity * unitPrice * 100) / 100;
+  const discountAmount = Math.round(rawNet * (discount / 100) * 100) / 100;
+  const netAmount = Math.round((rawNet - discountAmount) * 100) / 100;
   const vatAmount = Math.round(netAmount * (taxRate / 100) * 100) / 100;
   const grossAmount = Math.round((netAmount + vatAmount) * 100) / 100;
-  return { netAmount, vatAmount, grossAmount };
+  return { netAmount, discountAmount, vatAmount, grossAmount };
 }
 
 export function shouldReverseCharge(
@@ -33,6 +36,7 @@ export function getVatBreakdown(
     quantity: number;
     unitPrice: number;
     taxRate: number;
+    discount?: number;
   }>
 ): Array<{ rate: number; netTotal: number; vatTotal: number }> {
   const grouped = new Map<number, { netTotal: number; vatTotal: number }>();
@@ -41,7 +45,8 @@ export function getVatBreakdown(
     const { netAmount, vatAmount } = calculateLineItem(
       item.quantity,
       item.unitPrice,
-      item.taxRate
+      item.taxRate,
+      item.discount ?? 0
     );
 
     const existing = grouped.get(item.taxRate);

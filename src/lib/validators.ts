@@ -2,11 +2,14 @@ import { z } from "zod";
 
 export const clientSchema = z.object({
   name: z.string().min(1, "Name is required"),
+  contactPerson: z.string().optional(),
   email: z.string().email().optional().or(z.literal("")),
   address: z.string().min(1, "Address is required"),
+  billingAddress: z.string().optional(),
   country: z.string().length(2).default("DE"),
   taxId: z.string().optional(),
   phone: z.string().optional(),
+  website: z.string().optional(),
   notes: z.string().optional(),
 });
 
@@ -23,6 +26,7 @@ export const lineItemSchema = z.object({
   description: z.string().min(1, "Description is required"),
   quantity: z.number().positive("Quantity must be positive"),
   unitPrice: z.number().nonnegative("Unit price must be zero or positive"),
+  discount: z.number().min(0).max(100).default(0),
   taxRate: z.number().min(0).max(100),
   unit: z.string().default("hour"),
   sortOrder: z.number().optional(),
@@ -51,6 +55,8 @@ export const businessProfileSchema = z.object({
   bankName: z.string().optional(),
   bankIban: z.string().optional(),
   bankBic: z.string().optional(),
+  logoUrl: z.string().nullable().optional(),
+  accentColor: z.string().default("#1e40af"),
   defaultCurrency: z.string().default("EUR"),
   invoicePrefix: z.string().default("INV"),
   defaultPaymentTermDays: z.number().int().positive().default(30),
