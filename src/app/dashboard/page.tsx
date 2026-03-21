@@ -14,6 +14,7 @@ import { formatDate } from "@/lib/utils";
 import { Plus, RefreshCw, AlertTriangle, Repeat } from "lucide-react";
 import { differenceInDays } from "date-fns";
 import { useAuth } from "@/lib/auth-context";
+import { KpiSection } from "@/components/dashboard/kpi-section";
 
 interface ActionNeededInvoice {
   id: string;
@@ -35,6 +36,18 @@ interface UpcomingRecurring {
   client: { id: string; name: string };
 }
 
+interface KpiData {
+  thisMonthRevenue: number;
+  lastMonthRevenue: number;
+  revenueGrowth: number;
+  avgDSO: number;
+  collectionRate: number;
+  avgInvoiceValue: number;
+  thisMonthCount: number;
+  lastMonthCount: number;
+  monthlyInvoiceCounts: Array<{ month: string; count: number }>;
+}
+
 interface DashboardStats {
   totalRevenue: number;
   outstanding: number;
@@ -43,6 +56,7 @@ interface DashboardStats {
   totalInvoices: number;
   income: number;
   totalBalance: number;
+  monthlyRevenue: Array<{ month: string; revenue: number }>;
   recentInvoices: Array<{
     id: string;
     invoiceNumber: string;
@@ -53,6 +67,7 @@ interface DashboardStats {
   }>;
   actionNeeded: ActionNeededInvoice[];
   upcomingRecurring: UpcomingRecurring[];
+  kpi: KpiData;
 }
 
 const POLL_INTERVAL = 30000;
@@ -149,6 +164,11 @@ export default function DashboardPage() {
         }
       />
       <StatsCards stats={stats} />
+
+      {/* KPI Section - Admin only */}
+      {isAdmin && stats.kpi && (
+        <KpiSection kpi={stats.kpi} monthlyRevenue={stats.monthlyRevenue} />
+      )}
 
       {/* Action Needed */}
       {stats.actionNeeded && stats.actionNeeded.length > 0 && (
