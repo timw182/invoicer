@@ -41,9 +41,12 @@ export default function ReportsPage() {
         title="Reports"
         description="Profit & Loss and expense breakdown"
         action={
-          <Link href="/reports/tax">
-            <Button variant="outline">Tax Report</Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/reports/aging"><Button variant="outline" size="sm">Aging</Button></Link>
+            <Link href="/reports/cashflow"><Button variant="outline" size="sm">Cash Flow</Button></Link>
+            <Link href="/reports/clients"><Button variant="outline" size="sm">Clients</Button></Link>
+            <Link href="/reports/tax"><Button variant="outline" size="sm">Tax</Button></Link>
+          </div>
         }
       />
 
