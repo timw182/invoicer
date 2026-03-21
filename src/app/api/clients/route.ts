@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { clientSchema } from "@/lib/validators";
+import { requireAuth, AuthError } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
+    await requireAuth();
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search");
 
@@ -22,8 +24,9 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json(clients);
-  } catch (error) {
-    console.error("Failed to fetch clients:", error);
+  } catch (e) {
+    if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
+    console.error("Failed to fetch clients:", e);
     return NextResponse.json(
       { error: "Failed to fetch clients" },
       { status: 500 }
@@ -33,6 +36,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    await requireAuth();
     const body = await request.json();
     const parsed = clientSchema.safeParse(body);
 
@@ -48,8 +52,9 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(client, { status: 201 });
-  } catch (error) {
-    console.error("Failed to create client:", error);
+  } catch (e) {
+    if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
+    console.error("Failed to create client:", e);
     return NextResponse.json(
       { error: "Failed to create client" },
       { status: 500 }

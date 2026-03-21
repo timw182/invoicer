@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { subMonths, startOfMonth, format } from "date-fns";
+import { subMonths, startOfMonth, format, addDays } from "date-fns";
+import { requireAuth, AuthError } from "@/lib/auth";
 
 async function markOverdueInvoices() {
   await prisma.invoice.updateMany({
@@ -14,6 +15,7 @@ async function markOverdueInvoices() {
 
 export async function GET() {
   try {
+    await requireAuth();
     await markOverdueInvoices();
 
     const [
@@ -23,6 +25,8 @@ export async function GET() {
       overdueCount,
       totalInvoices,
       recentInvoices,
+      incomeResult,
+      totalBalanceResult,
     ] = await Promise.all([
       prisma.invoice.aggregate({
         _sum: { total: true },
@@ -44,6 +48,13 @@ export async function GET() {
         take: 5,
         orderBy: { issueDate: "desc" },
         include: { client: true },
+      }),
+      prisma.transaction.aggregate({
+        _sum: { amount: true },
+        where: { type: "income" },
+      }),
+      prisma.bankAccount.aggregate({
+        _sum: { balance: true },
       }),
     ]);
 
@@ -82,17 +93,47 @@ export async function GET() {
       ([month, revenue]) => ({ month, revenue })
     );
 
+    // Invoices needing attention (due soon or overdue)
+    const threeDaysFromNow = addDays(new Date(), 3);
+    const actionNeeded = await prisma.invoice.findMany({
+      where: {
+        OR: [
+          { status: "sent", dueDate: { lte: threeDaysFromNow } },
+          { status: "overdue" },
+        ],
+      },
+      include: { client: true, reminders: { orderBy: { sentAt: "desc" }, take: 1 } },
+      orderBy: { dueDate: "asc" },
+      take: 10,
+    });
+
+    // Upcoming recurring invoices
+    const upcomingRecurring = await prisma.recurringInvoice.findMany({
+      where: {
+        active: true,
+        nextGenerateAt: { lte: addDays(new Date(), 7) },
+      },
+      include: { client: true },
+      orderBy: { nextGenerateAt: "asc" },
+      take: 5,
+    });
+
     return NextResponse.json({
       totalRevenue: totalRevenueResult._sum.total ?? 0,
       outstanding: outstandingResult._sum.total ?? 0,
       overdue: overdueResult._sum.total ?? 0,
       overdueCount,
       totalInvoices,
+      income: incomeResult._sum.amount ?? 0,
+      totalBalance: totalBalanceResult._sum.balance ?? 0,
       recentInvoices,
       monthlyRevenue,
+      actionNeeded,
+      upcomingRecurring,
     });
-  } catch (error) {
-    console.error("Failed to fetch dashboard stats:", error);
+  } catch (e) {
+    if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
+    console.error("Failed to fetch dashboard stats:", e);
     return NextResponse.json(
       { error: "Failed to fetch dashboard stats" },
       { status: 500 }

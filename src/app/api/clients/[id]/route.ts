@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { clientSchema } from "@/lib/validators";
+import { requireAuth, AuthError } from "@/lib/auth";
 
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await requireAuth();
     const { id } = await params;
     const client = await prisma.client.findUnique({
       where: { id },
@@ -22,8 +24,9 @@ export async function GET(
     }
 
     return NextResponse.json(client);
-  } catch (error) {
-    console.error("Failed to fetch client:", error);
+  } catch (e) {
+    if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
+    console.error("Failed to fetch client:", e);
     return NextResponse.json(
       { error: "Failed to fetch client" },
       { status: 500 }
@@ -36,6 +39,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await requireAuth();
     const { id } = await params;
     const body = await request.json();
     const parsed = clientSchema.safeParse(body);
@@ -53,8 +57,9 @@ export async function PUT(
     });
 
     return NextResponse.json(client);
-  } catch (error) {
-    console.error("Failed to update client:", error);
+  } catch (e) {
+    if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
+    console.error("Failed to update client:", e);
     return NextResponse.json(
       { error: "Failed to update client" },
       { status: 500 }
@@ -67,6 +72,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await requireAuth();
     const { id } = await params;
 
     const invoiceCount = await prisma.invoice.count({
@@ -86,8 +92,9 @@ export async function DELETE(
     await prisma.client.delete({ where: { id } });
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Failed to delete client:", error);
+  } catch (e) {
+    if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
+    console.error("Failed to delete client:", e);
     return NextResponse.json(
       { error: "Failed to delete client" },
       { status: 500 }

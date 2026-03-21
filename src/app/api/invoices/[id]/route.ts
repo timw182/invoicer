@@ -3,12 +3,14 @@ import { prisma } from "@/lib/db";
 import { invoiceCreateSchema } from "@/lib/validators";
 import { calculateLineItem } from "@/lib/vat";
 import { addDays } from "date-fns";
+import { requireAuth, AuthError } from "@/lib/auth";
 
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await requireAuth();
     const { id } = await params;
     const invoice = await prisma.invoice.findUnique({
       where: { id },
@@ -26,8 +28,9 @@ export async function GET(
     }
 
     return NextResponse.json(invoice);
-  } catch (error) {
-    console.error("Failed to fetch invoice:", error);
+  } catch (e) {
+    if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
+    console.error("Failed to fetch invoice:", e);
     return NextResponse.json(
       { error: "Failed to fetch invoice" },
       { status: 500 }
@@ -40,6 +43,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await requireAuth();
     const { id } = await params;
 
     const existing = await prisma.invoice.findUnique({ where: { id } });
@@ -138,8 +142,9 @@ export async function PUT(
     });
 
     return NextResponse.json(invoice);
-  } catch (error) {
-    console.error("Failed to update invoice:", error);
+  } catch (e) {
+    if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
+    console.error("Failed to update invoice:", e);
     return NextResponse.json(
       { error: "Failed to update invoice" },
       { status: 500 }
@@ -152,6 +157,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await requireAuth();
     const { id } = await params;
 
     const existing = await prisma.invoice.findUnique({ where: { id } });
@@ -172,8 +178,9 @@ export async function DELETE(
     await prisma.invoice.delete({ where: { id } });
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Failed to delete invoice:", error);
+  } catch (e) {
+    if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
+    console.error("Failed to delete invoice:", e);
     return NextResponse.json(
       { error: "Failed to delete invoice" },
       { status: 500 }

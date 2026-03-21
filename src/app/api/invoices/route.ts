@@ -4,6 +4,7 @@ import { invoiceCreateSchema } from "@/lib/validators";
 import { generateInvoiceNumber } from "@/lib/invoice-number";
 import { shouldReverseCharge, calculateLineItem } from "@/lib/vat";
 import { addDays } from "date-fns";
+import { requireAuth, AuthError } from "@/lib/auth";
 
 async function markOverdueInvoices() {
   await prisma.invoice.updateMany({
@@ -17,6 +18,7 @@ async function markOverdueInvoices() {
 
 export async function GET(request: NextRequest) {
   try {
+    await requireAuth();
     await markOverdueInvoices();
 
     const { searchParams } = new URL(request.url);
@@ -34,8 +36,9 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json(invoices);
-  } catch (error) {
-    console.error("Failed to fetch invoices:", error);
+  } catch (e) {
+    if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
+    console.error("Failed to fetch invoices:", e);
     return NextResponse.json(
       { error: "Failed to fetch invoices" },
       { status: 500 }
@@ -45,6 +48,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    await requireAuth();
     const body = await request.json();
     const parsed = invoiceCreateSchema.safeParse(body);
 
@@ -70,8 +74,10 @@ export async function POST(request: NextRequest) {
 
       const invoiceNumber = await generateInvoiceNumber(tx);
 
+      const supplierCountry = profile.country || "DE";
+
       const reverseCharge = shouldReverseCharge(
-        "DE",
+        supplierCountry,
         client.country,
         client.taxId
       );
@@ -126,11 +132,14 @@ export async function POST(request: NextRequest) {
       const created = await tx.invoice.create({
         data: {
           invoiceNumber,
+          invoiceType: data.invoiceType || "standard",
           status: "draft",
           issueDate,
           supplyDate,
           dueDate,
           currency: data.currency,
+          customerReference: data.customerReference,
+          exchangeRate: data.exchangeRate,
           supplierName: profile.name,
           supplierAddress: profile.address,
           supplierVatId: profile.vatId,
@@ -138,6 +147,7 @@ export async function POST(request: NextRequest) {
           clientAddress: client.billingAddress || client.address,
           clientVatId: client.taxId,
           clientCountry: client.country,
+          supplierCountry,
           subtotal,
           totalVat,
           total,
@@ -160,8 +170,9 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(invoice, { status: 201 });
-  } catch (error) {
-    console.error("Failed to create invoice:", error);
+  } catch (e) {
+    if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
+    console.error("Failed to create invoice:", e);
     return NextResponse.json(
       { error: "Failed to create invoice" },
       { status: 500 }

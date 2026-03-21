@@ -40,7 +40,7 @@ export function ServiceForm({ initialData, onSuccess }: ServiceFormProps) {
       description: "",
       unitPrice: 0,
       unit: "hour",
-      taxRate: 19,
+      taxRate: 17,
     },
   });
 

@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Pencil, Send, CheckCircle, XCircle, Trash2, Download } from "lucide-react";
+import { Pencil, Send, CheckCircle, XCircle, Trash2, Download, Bell } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
 
 interface InvoiceActionsProps {
   invoiceId: string;
@@ -14,6 +15,8 @@ interface InvoiceActionsProps {
 export function InvoiceActions({ invoiceId, status }: InvoiceActionsProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
 
   async function updateStatus(newStatus: string) {
     setLoading(true);
@@ -47,6 +50,24 @@ export function InvoiceActions({ invoiceId, status }: InvoiceActionsProps) {
         throw new Error(error.message || "Failed to delete invoice");
       }
       router.push("/invoices");
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "An error occurred");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleReminder() {
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/invoices/${invoiceId}/reminder`, {
+        method: "POST",
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to send reminder");
+      }
+      router.refresh();
     } catch (error) {
       alert(error instanceof Error ? error.message : "An error occurred");
     } finally {
@@ -90,14 +111,25 @@ export function InvoiceActions({ invoiceId, status }: InvoiceActionsProps) {
 
       {status === "sent" && (
         <>
+          {isAdmin && (
+            <Button
+              size="sm"
+              disabled={loading}
+              onClick={() => updateStatus("paid")}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+            >
+              <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
+              Mark as Paid
+            </Button>
+          )}
           <Button
+            variant="outline"
             size="sm"
             disabled={loading}
-            onClick={() => updateStatus("paid")}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white"
+            onClick={handleReminder}
           >
-            <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
-            Mark as Paid
+            <Bell className="h-3.5 w-3.5 mr-1.5" />
+            Send Reminder
           </Button>
           <Button
             variant="outline"
@@ -112,15 +144,28 @@ export function InvoiceActions({ invoiceId, status }: InvoiceActionsProps) {
       )}
 
       {status === "overdue" && (
-        <Button
-          size="sm"
-          disabled={loading}
-          onClick={() => updateStatus("paid")}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white"
-        >
-          <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
-          Mark as Paid
-        </Button>
+        <>
+          {isAdmin && (
+            <Button
+              size="sm"
+              disabled={loading}
+              onClick={() => updateStatus("paid")}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+            >
+              <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
+              Mark as Paid
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={loading}
+            onClick={handleReminder}
+          >
+            <Bell className="h-3.5 w-3.5 mr-1.5" />
+            Send Reminder
+          </Button>
+        </>
       )}
 
       <Button variant="outline" size="sm" onClick={handlePrint}>

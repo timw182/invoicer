@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { LineItemRow, type LineItemData } from "@/components/invoices/line-item-row";
 import { calculateLineItem, getVatBreakdown, shouldReverseCharge } from "@/lib/vat";
-import { formatCurrency } from "@/lib/currency";
+import { formatCurrency, SUPPORTED_CURRENCIES } from "@/lib/currency";
+import { FileStack } from "lucide-react";
+
+interface TemplateOption {
+  id: string;
+  name: string;
+  description: string | null;
+  lineItems: Array<{
+    description: string;
+    quantity: number;
+    unit: string;
+    unitPrice: number;
+    discount: number;
+    taxRate: number;
+    serviceId: string | null;
+  }>;
+}
 
 interface ClientOption {
   id: string;
@@ -78,7 +94,7 @@ const emptyLineItem: LineItemData = {
   unit: "hour",
   unitPrice: 0,
   discount: 0,
-  taxRate: 19,
+  taxRate: 17,
 };
 
 export function InvoiceForm({
@@ -89,6 +105,16 @@ export function InvoiceForm({
 }: InvoiceFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [templates, setTemplates] = useState<TemplateOption[]>([]);
+
+  useEffect(() => {
+    if (!initialData) {
+      fetch("/api/templates")
+        .then((r) => (r.ok ? r.json() : []))
+        .then(setTemplates)
+        .catch(() => {});
+    }
+  }, [initialData]);
 
   const [clientId, setClientId] = useState(initialData?.clientId || "");
   const [issueDate, setIssueDate] = useState(
@@ -103,6 +129,12 @@ export function InvoiceForm({
   const [currency, setCurrency] = useState(
     initialData?.currency || businessProfile.defaultCurrency
   );
+  const [invoiceType, setInvoiceType] = useState(
+    (initialData as unknown as Record<string, unknown>)?.invoiceType as string || "standard"
+  );
+  const [customerReference, setCustomerReference] = useState(
+    (initialData as unknown as Record<string, unknown>)?.customerReference as string || ""
+  );
   const [notes, setNotes] = useState(initialData?.notes || "");
   const [lineItems, setLineItems] = useState<LineItemData[]>(
     initialData?.lineItems.map((li) => ({
@@ -116,7 +148,7 @@ export function InvoiceForm({
     })) || [
       {
         ...emptyLineItem,
-        taxRate: businessProfile.smallBusinessExemption ? 0 : 19,
+        taxRate: businessProfile.smallBusinessExemption ? 0 : 17,
       },
     ]
   );
@@ -182,9 +214,25 @@ export function InvoiceForm({
       ...prev,
       {
         ...emptyLineItem,
-        taxRate: businessProfile.smallBusinessExemption || isReverseCharge ? 0 : 19,
+        taxRate: businessProfile.smallBusinessExemption || isReverseCharge ? 0 : 17,
       },
     ]);
+  }
+
+  function applyTemplate(templateId: string) {
+    const tpl = templates.find((t) => t.id === templateId);
+    if (!tpl) return;
+    const zeroTax = businessProfile.smallBusinessExemption || isReverseCharge;
+    const newItems: LineItemData[] = tpl.lineItems.map((li) => ({
+      serviceId: li.serviceId || undefined,
+      description: li.description,
+      quantity: li.quantity,
+      unit: li.unit,
+      unitPrice: li.unitPrice,
+      discount: li.discount,
+      taxRate: zeroTax ? 0 : li.taxRate,
+    }));
+    setLineItems(newItems);
   }
 
   async function handleSubmit(sendAfterSave: boolean) {
@@ -202,10 +250,12 @@ export function InvoiceForm({
     try {
       const payload = {
         clientId,
+        invoiceType,
         issueDate,
         supplyDate: supplyDate || null,
         paymentTermDays,
         currency,
+        customerReference: customerReference || null,
         notes: notes || null,
         lineItems: effectiveLineItems.map((li, i) => ({
           serviceId: li.serviceId || null,
@@ -260,7 +310,7 @@ export function InvoiceForm({
           <CardTitle>Invoice Details</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="client">Client</Label>
               <Select
@@ -277,16 +327,23 @@ export function InvoiceForm({
               </Select>
             </div>
             <div className="space-y-2">
+              <Label htmlFor="invoiceType">Invoice Type</Label>
+              <Select id="invoiceType" value={invoiceType} onChange={(e) => setInvoiceType(e.target.value)}>
+                <option value="standard">Standard Invoice</option>
+                <option value="credit_note">Credit Note</option>
+                <option value="corrective">Corrective Invoice</option>
+              </Select>
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="currency">Currency</Label>
               <Select
                 id="currency"
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
               >
-                <option value="EUR">EUR</option>
-                <option value="USD">USD</option>
-                <option value="GBP">GBP</option>
-                <option value="CHF">CHF</option>
+                {SUPPORTED_CURRENCIES.map((c) => (
+                  <option key={c.code} value={c.code}>{c.code} — {c.name}</option>
+                ))}
               </Select>
             </div>
           </div>
@@ -322,6 +379,15 @@ export function InvoiceForm({
               />
             </div>
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="customerReference">Customer Reference / PO Number (optional)</Label>
+            <Input
+              id="customerReference"
+              value={customerReference}
+              onChange={(e) => setCustomerReference(e.target.value)}
+              placeholder="e.g. PO-2026-001"
+            />
+          </div>
         </CardContent>
       </Card>
 
@@ -343,7 +409,26 @@ export function InvoiceForm({
 
       <Card>
         <CardHeader>
-          <CardTitle>Line Items</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>Line Items</CardTitle>
+            {!initialData && templates.length > 0 && (
+              <div className="flex items-center gap-2">
+                <FileStack className="h-4 w-4 text-muted-foreground" />
+                <Select
+                  value=""
+                  onChange={(e) => {
+                    if (e.target.value) applyTemplate(e.target.value);
+                  }}
+                  className="w-48 h-8 text-xs"
+                >
+                  <option value="">Load template...</option>
+                  {templates.map((t) => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </Select>
+              </div>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           <div className="mb-3 grid grid-cols-[2fr_3fr_1fr_1fr_1fr_1fr_1fr_2fr_auto] gap-2 text-xs font-medium text-muted-foreground">

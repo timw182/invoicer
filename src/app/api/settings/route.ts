@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { businessProfileSchema } from "@/lib/validators";
+import { requireAuth, AuthError } from "@/lib/auth";
 
 const defaultProfile = {
   name: "",
@@ -22,6 +23,7 @@ const defaultProfile = {
 
 export async function GET() {
   try {
+    await requireAuth();
     let profile = await prisma.businessProfile.findFirst();
 
     if (!profile) {
@@ -31,8 +33,9 @@ export async function GET() {
     }
 
     return NextResponse.json(profile);
-  } catch (error) {
-    console.error("Failed to fetch settings:", error);
+  } catch (e) {
+    if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
+    console.error("Failed to fetch settings:", e);
     return NextResponse.json(
       { error: "Failed to fetch settings" },
       { status: 500 }
@@ -42,6 +45,7 @@ export async function GET() {
 
 export async function PUT(request: Request) {
   try {
+    await requireAuth();
     const body = await request.json();
     const parsed = businessProfileSchema.safeParse(body);
 
@@ -66,8 +70,9 @@ export async function PUT(request: Request) {
     }
 
     return NextResponse.json(profile);
-  } catch (error) {
-    console.error("Failed to update settings:", error);
+  } catch (e) {
+    if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
+    console.error("Failed to update settings:", e);
     return NextResponse.json(
       { error: "Failed to update settings" },
       { status: 500 }

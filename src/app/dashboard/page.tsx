@@ -6,8 +6,34 @@ import { PageHeader } from "@/components/layout/page-header";
 import { StatsCards } from "@/components/dashboard/stats-cards";
 import { OverdueList } from "@/components/dashboard/overdue-list";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, RefreshCw } from "lucide-react";
+import { StatusBadge } from "@/components/invoices/status-badge";
+import { formatCurrency } from "@/lib/currency";
+import { formatDate } from "@/lib/utils";
+import { Plus, RefreshCw, AlertTriangle, Repeat } from "lucide-react";
+import { differenceInDays } from "date-fns";
+import { useAuth } from "@/lib/auth-context";
+
+interface ActionNeededInvoice {
+  id: string;
+  invoiceNumber: string;
+  status: string;
+  total: number;
+  currency: string;
+  dueDate: string;
+  clientName: string;
+  client: { id: string; name: string };
+  reminders: Array<{ sentAt: string; type: string }>;
+}
+
+interface UpcomingRecurring {
+  id: string;
+  name: string;
+  nextGenerateAt: string;
+  frequency: string;
+  client: { id: string; name: string };
+}
 
 interface DashboardStats {
   totalRevenue: number;
@@ -15,6 +41,8 @@ interface DashboardStats {
   overdue: number;
   overdueCount: number;
   totalInvoices: number;
+  income: number;
+  totalBalance: number;
   recentInvoices: Array<{
     id: string;
     invoiceNumber: string;
@@ -23,11 +51,15 @@ interface DashboardStats {
     status: string;
     dueDate: string;
   }>;
+  actionNeeded: ActionNeededInvoice[];
+  upcomingRecurring: UpcomingRecurring[];
 }
 
 const POLL_INTERVAL = 30000;
 
 export default function DashboardPage() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -60,8 +92,8 @@ export default function DashboardPage() {
     return (
       <div className="space-y-6">
         <PageHeader title="Dashboard" description="Overview of your invoicing" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[...Array(6)].map((_, i) => (
             <Card key={i}>
               <CardContent className="p-5">
                 <div className="h-20 animate-pulse rounded bg-muted" />
@@ -117,6 +149,91 @@ export default function DashboardPage() {
         }
       />
       <StatsCards stats={stats} />
+
+      {/* Action Needed */}
+      {stats.actionNeeded && stats.actionNeeded.length > 0 && (
+        <Card className="border-amber-200">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-amber-600" />
+              <CardTitle className="text-base font-semibold">Action Needed</CardTitle>
+              <Badge variant="secondary" className="text-xs">{stats.actionNeeded.length}</Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {stats.actionNeeded.map((inv) => {
+                const daysOverdue = differenceInDays(new Date(), new Date(inv.dueDate));
+                const lastReminder = inv.reminders?.[0];
+                return (
+                  <Link
+                    key={inv.id}
+                    href={`/invoices/${inv.id}`}
+                    className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <StatusBadge status={inv.status} />
+                      <div>
+                        <span className="font-mono text-sm font-medium">{inv.invoiceNumber}</span>
+                        <span className="text-sm text-muted-foreground ml-2">{inv.client.name}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm">
+                      {lastReminder && (
+                        <span className="text-xs text-muted-foreground">
+                          Reminded {formatDate(lastReminder.sentAt)}
+                        </span>
+                      )}
+                      <span className={`font-medium ${daysOverdue > 0 ? "text-red-600" : "text-amber-600"}`}>
+                        {daysOverdue > 0 ? `${daysOverdue}d overdue` : `Due in ${Math.abs(daysOverdue)}d`}
+                      </span>
+                      <span className="tabular-nums font-medium">{formatCurrency(inv.total, inv.currency)}</span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Upcoming Recurring - Admin only */}
+      {isAdmin && stats.upcomingRecurring && stats.upcomingRecurring.length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Repeat className="h-4 w-4 text-blue-600" />
+                <CardTitle className="text-base font-semibold">Upcoming Auto-Invoices</CardTitle>
+              </div>
+              <Link href="/recurring" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                View all
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {stats.upcomingRecurring.map((rec) => (
+                <Link
+                  key={rec.id}
+                  href={`/recurring/${rec.id}`}
+                  className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
+                >
+                  <div>
+                    <span className="text-sm font-medium">{rec.name}</span>
+                    <span className="text-sm text-muted-foreground ml-2">{rec.client.name}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Badge variant="secondary" className="text-xs capitalize">{rec.frequency}</Badge>
+                    <span className="text-sm text-muted-foreground">{formatDate(rec.nextGenerateAt)}</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">

@@ -24,10 +24,17 @@ interface Branding {
   bankBic?: string | null;
 }
 
+const INVOICE_TYPE_LABELS: Record<string, string> = {
+  standard: "INVOICE",
+  credit_note: "CREDIT NOTE",
+  corrective: "CORRECTIVE INVOICE",
+};
+
 interface InvoicePreviewProps {
   invoice: {
     id: string;
     invoiceNumber: string;
+    invoiceType?: string;
     status: string;
     issueDate: string | Date;
     supplyDate?: string | Date | null;
@@ -36,15 +43,19 @@ interface InvoicePreviewProps {
     supplierName: string;
     supplierAddress: string;
     supplierVatId?: string | null;
+    supplierCountry?: string;
     clientName: string;
     clientAddress: string;
     clientVatId?: string | null;
     clientCountry: string;
+    customerReference?: string | null;
+    exchangeRate?: number | null;
     subtotal: number;
     totalVat: number;
     total: number;
     reverseCharge: boolean;
     vatExemptionNote?: string | null;
+    correctionOfInvoice?: string | null;
     notes?: string | null;
     paymentTermDays: number;
     lineItems: LineItem[];
@@ -100,6 +111,11 @@ export function InvoicePreview({ invoice, branding }: InvoicePreviewProps) {
                   VAT ID: {invoice.supplierVatId}
                 </p>
               )}
+              {invoice.supplierCountry && (
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  Country: {invoice.supplierCountry}
+                </p>
+              )}
             </div>
           </div>
           <div className="text-right">
@@ -107,7 +123,7 @@ export function InvoicePreview({ invoice, branding }: InvoicePreviewProps) {
               className="text-3xl font-bold tracking-tight mb-3"
               style={{ color: accentColor }}
             >
-              INVOICE
+              {INVOICE_TYPE_LABELS[invoice.invoiceType || "standard"] || "INVOICE"}
             </h1>
             <div className="text-sm space-y-1.5">
               <div className="flex justify-end gap-2">
@@ -144,6 +160,14 @@ export function InvoicePreview({ invoice, branding }: InvoicePreviewProps) {
           {invoice.clientVatId && (
             <p className="text-sm text-muted-foreground mt-1">
               VAT ID: {invoice.clientVatId}
+            </p>
+          )}
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Country: {invoice.clientCountry}
+          </p>
+          {invoice.customerReference && (
+            <p className="text-sm text-muted-foreground mt-2">
+              <span className="font-medium">Your ref:</span> {invoice.customerReference}
             </p>
           )}
         </div>
@@ -242,6 +266,22 @@ export function InvoicePreview({ invoice, branding }: InvoicePreviewProps) {
             </div>
           </div>
         </div>
+
+        {/* Exchange rate */}
+        {invoice.exchangeRate && invoice.currency !== "EUR" && (
+          <div className="flex justify-end mb-4">
+            <p className="text-xs text-muted-foreground">
+              Exchange rate: 1 EUR = {invoice.exchangeRate} {invoice.currency}
+            </p>
+          </div>
+        )}
+
+        {/* Correction reference */}
+        {invoice.correctionOfInvoice && (
+          <div className="mb-4 rounded-lg border border-purple-200 bg-purple-50/50 px-4 py-3 text-sm text-purple-800">
+            This {(invoice.invoiceType === "credit_note") ? "credit note" : "corrective invoice"} relates to invoice: {invoice.correctionOfInvoice}
+          </div>
+        )}
 
         {/* Notices */}
         {invoice.reverseCharge && (

@@ -9,12 +9,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Upload, X } from "lucide-react";
+import { Upload, X, Mail } from "lucide-react";
+import { SUPPORTED_CURRENCIES } from "@/lib/currency";
 
 interface BusinessProfile {
   id: string;
   name: string;
   address: string;
+  country: string;
   vatId: string | null;
   email: string | null;
   phone: string | null;
@@ -28,6 +30,12 @@ interface BusinessProfile {
   defaultPaymentTermDays: number;
   smallBusinessExemption: boolean;
   exemptionNote: string | null;
+  smtpHost: string | null;
+  smtpPort: number;
+  smtpUser: string | null;
+  smtpPass: string | null;
+  smtpFrom: string | null;
+  smtpSecure: boolean;
 }
 
 export default function SettingsPage() {
@@ -70,6 +78,7 @@ export default function SettingsPage() {
         body: JSON.stringify({
           name: profile.name,
           address: profile.address,
+          country: profile.country,
           vatId: profile.vatId || undefined,
           email: profile.email || undefined,
           phone: profile.phone || undefined,
@@ -83,6 +92,12 @@ export default function SettingsPage() {
           defaultPaymentTermDays: profile.defaultPaymentTermDays,
           smallBusinessExemption: profile.smallBusinessExemption,
           exemptionNote: profile.exemptionNote || undefined,
+          smtpHost: profile.smtpHost || undefined,
+          smtpPort: profile.smtpPort,
+          smtpUser: profile.smtpUser || undefined,
+          smtpPass: profile.smtpPass || undefined,
+          smtpFrom: profile.smtpFrom || undefined,
+          smtpSecure: profile.smtpSecure,
         }),
       });
 
@@ -169,6 +184,35 @@ export default function SettingsPage() {
                 onChange={(e) => updateField("address", e.target.value)}
                 required
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="country">Country</Label>
+              <Select
+                id="country"
+                value={profile.country}
+                onChange={(e) => updateField("country", e.target.value)}
+              >
+                <option value="DE">Germany (DE)</option>
+                <option value="AT">Austria (AT)</option>
+                <option value="CH">Switzerland (CH)</option>
+                <option value="NL">Netherlands (NL)</option>
+                <option value="FR">France (FR)</option>
+                <option value="BE">Belgium (BE)</option>
+                <option value="IT">Italy (IT)</option>
+                <option value="ES">Spain (ES)</option>
+                <option value="PL">Poland (PL)</option>
+                <option value="CZ">Czech Republic (CZ)</option>
+                <option value="DK">Denmark (DK)</option>
+                <option value="SE">Sweden (SE)</option>
+                <option value="FI">Finland (FI)</option>
+                <option value="PT">Portugal (PT)</option>
+                <option value="IE">Ireland (IE)</option>
+                <option value="LU">Luxembourg (LU)</option>
+                <option value="GR">Greece (GR)</option>
+                <option value="GB">United Kingdom (GB)</option>
+                <option value="US">United States (US)</option>
+                <option value="NO">Norway (NO)</option>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="vatId">VAT ID</Label>
@@ -325,10 +369,9 @@ export default function SettingsPage() {
                 value={profile.defaultCurrency}
                 onChange={(e) => updateField("defaultCurrency", e.target.value)}
               >
-                <option value="EUR">EUR</option>
-                <option value="USD">USD</option>
-                <option value="GBP">GBP</option>
-                <option value="CHF">CHF</option>
+                {SUPPORTED_CURRENCIES.map((c) => (
+                  <option key={c.code} value={c.code}>{c.code} — {c.name}</option>
+                ))}
               </Select>
             </div>
             <div className="space-y-2">
@@ -379,6 +422,83 @@ export default function SettingsPage() {
                 />
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Mail className="h-5 w-5 text-muted-foreground" />
+              <CardTitle>Email (SMTP)</CardTitle>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Configure SMTP to send invoices and payment reminders by email.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="smtpHost">SMTP Host</Label>
+                <Input
+                  id="smtpHost"
+                  value={profile.smtpHost || ""}
+                  onChange={(e) => updateField("smtpHost", e.target.value)}
+                  placeholder="smtp.gmail.com"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="smtpPort">SMTP Port</Label>
+                <Input
+                  id="smtpPort"
+                  type="number"
+                  value={profile.smtpPort}
+                  onChange={(e) => updateField("smtpPort", parseInt(e.target.value) || 587)}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="smtpUser">Username</Label>
+                <Input
+                  id="smtpUser"
+                  value={profile.smtpUser || ""}
+                  onChange={(e) => updateField("smtpUser", e.target.value)}
+                  placeholder="your@email.com"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="smtpPass">Password</Label>
+                <Input
+                  id="smtpPass"
+                  type="password"
+                  value={profile.smtpPass || ""}
+                  onChange={(e) => updateField("smtpPass", e.target.value)}
+                  placeholder="App password or SMTP password"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="smtpFrom">From Address</Label>
+              <Input
+                id="smtpFrom"
+                type="email"
+                value={profile.smtpFrom || ""}
+                onChange={(e) => updateField("smtpFrom", e.target.value)}
+                placeholder="invoices@yourdomain.com (defaults to business email)"
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                id="smtpSecure"
+                type="checkbox"
+                checked={profile.smtpSecure}
+                onChange={(e) => updateField("smtpSecure", e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300"
+              />
+              <Label htmlFor="smtpSecure">
+                Use SSL/TLS (port 465). Leave unchecked for STARTTLS (port 587).
+              </Label>
+            </div>
           </CardContent>
         </Card>
 

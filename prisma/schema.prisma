@@ -7,10 +7,32 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  name      String
+  password  String
+  role      String    @default("user") // "admin" | "user"
+  active    Boolean   @default(true)
+  sessions  Session[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
 model BusinessProfile {
   id                     String   @id @default(cuid())
   name                   String
   address                String
+  country                String   @default("LU")
   vatId                  String?
   email                  String?
   phone                  String?
@@ -25,69 +47,86 @@ model BusinessProfile {
   defaultPaymentTermDays Int      @default(30)
   smallBusinessExemption Boolean  @default(false)
   exemptionNote          String?
+  smtpHost               String?
+  smtpPort               Int      @default(587)
+  smtpUser               String?
+  smtpPass               String?
+  smtpFrom               String?
+  smtpSecure             Boolean  @default(false)
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
 }
 
 model Client {
-  id             String    @id @default(cuid())
-  name           String
-  contactPerson  String?
-  email          String?
-  address        String
-  billingAddress String?
-  country        String    @default("DE")
-  taxId          String?
-  phone          String?
-  website        String?
-  notes          String?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  invoices       Invoice[]
+  id                String             @id @default(cuid())
+  name              String
+  contactPerson     String?
+  email             String?
+  address           String
+  billingAddress    String?
+  country           String             @default("DE")
+  taxId             String?
+  phone             String?
+  website           String?
+  notes             String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  invoices          Invoice[]
+  recurringInvoices RecurringInvoice[]
 }
 
 model Service {
-  id          String            @id @default(cuid())
-  name        String
-  description String?
-  unitPrice   Float
-  unit        String            @default("hour")
-  taxRate     Float             @default(19.0)
-  active      Boolean           @default(true)
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  lineItems   InvoiceLineItem[]
+  id                 String              @id @default(cuid())
+  name               String
+  description        String?
+  unitPrice          Float
+  unit               String              @default("hour")
+  taxRate            Float               @default(17.0)
+  active             Boolean             @default(true)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  lineItems          InvoiceLineItem[]
+  recurringLineItems RecurringLineItem[]
+  templateItems      InvoiceTemplateItem[]
 }
 
 model Invoice {
-  id                  String            @id @default(cuid())
-  invoiceNumber       String            @unique
-  status              String            @default("draft")
-  issueDate           DateTime          @default(now())
-  supplyDate          DateTime?
-  dueDate             DateTime
-  currency            String            @default("EUR")
-  supplierName        String
-  supplierAddress     String
-  supplierVatId       String?
-  clientName          String
-  clientAddress       String
-  clientVatId         String?
-  clientCountry       String
-  subtotal            Float             @default(0)
-  totalVat            Float             @default(0)
-  total               Float             @default(0)
-  reverseCharge       Boolean           @default(false)
-  vatExemptionNote    String?
-  correctionOfInvoice String?
-  notes               String?
-  paymentTermDays     Int               @default(30)
-  clientId            String
-  client              Client            @relation(fields: [clientId], references: [id])
-  lineItems           InvoiceLineItem[]
-  paidAt              DateTime?
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
+  id                   String            @id @default(cuid())
+  invoiceNumber        String            @unique
+  invoiceType          String            @default("standard")
+  status               String            @default("draft")
+  issueDate            DateTime          @default(now())
+  supplyDate           DateTime?
+  dueDate              DateTime
+  currency             String            @default("EUR")
+  supplierName         String
+  supplierAddress      String
+  supplierVatId        String?
+  clientName           String
+  clientAddress        String
+  clientVatId          String?
+  clientCountry        String
+  supplierCountry      String            @default("DE")
+  customerReference    String?
+  exchangeRate         Float?
+  subtotal             Float             @default(0)
+  totalVat             Float             @default(0)
+  total                Float             @default(0)
+  reverseCharge        Boolean           @default(false)
+  vatExemptionNote     String?
+  correctionOfInvoice  String?
+  notes                String?
+  paymentTermDays      Int               @default(30)
+  clientId             String
+  client               Client            @relation(fields: [clientId], references: [id])
+  lineItems            InvoiceLineItem[]
+  reminders            Reminder[]
+  transactions         Transaction[]
+  recurringInvoiceId   String?
+  recurringInvoice     RecurringInvoice?  @relation(fields: [recurringInvoiceId], references: [id], onDelete: SetNull)
+  paidAt               DateTime?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
 }
 
 model InvoiceLineItem {
@@ -106,4 +145,115 @@ model InvoiceLineItem {
   invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
   serviceId   String?
   service     Service? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+}
+
+model RecurringInvoice {
+  id              String              @id @default(cuid())
+  name            String
+  clientId        String
+  client          Client              @relation(fields: [clientId], references: [id])
+  frequency       String              @default("monthly")
+  startDate       DateTime
+  endDate         DateTime?
+  nextGenerateAt  DateTime
+  currency        String              @default("EUR")
+  paymentTermDays Int                 @default(30)
+  notes           String?
+  autoSend        Boolean             @default(false)
+  active          Boolean             @default(true)
+  lineItems       RecurringLineItem[]
+  generatedInvoices Invoice[]
+  generatedCount  Int                 @default(0)
+  lastGeneratedAt DateTime?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+}
+
+model RecurringLineItem {
+  id                 String           @id @default(cuid())
+  recurringInvoiceId String
+  recurringInvoice   RecurringInvoice @relation(fields: [recurringInvoiceId], references: [id], onDelete: Cascade)
+  description        String
+  quantity           Float
+  unit               String           @default("hour")
+  unitPrice          Float
+  discount           Float            @default(0)
+  taxRate            Float            @default(17)
+  serviceId          String?
+  service            Service?         @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  sortOrder          Int              @default(0)
+}
+
+model Reminder {
+  id        String   @id @default(cuid())
+  invoiceId String
+  invoice   Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  type      String
+  sentAt    DateTime @default(now())
+}
+
+model Category {
+  id           String        @id @default(cuid())
+  name         String
+  type         String        // "income" | "expense"
+  color        String?
+  createdAt    DateTime      @default(now())
+  transactions Transaction[]
+}
+
+model BankAccount {
+  id           String        @id @default(cuid())
+  name         String
+  bankName     String?
+  iban         String?
+  balance      Float         @default(0)
+  currency     String        @default("EUR")
+  isDefault    Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  transactions Transaction[]
+}
+
+model Transaction {
+  id          String       @id @default(cuid())
+  type        String       // "income" | "expense"
+  description String
+  amount      Float
+  taxAmount   Float        @default(0)
+  taxRate     Float        @default(0)
+  date        DateTime
+  categoryId  String?
+  category    Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  accountId   String?
+  account     BankAccount? @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  invoiceId   String?
+  invoice     Invoice?     @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  receiptUrl  String?
+  notes       String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model InvoiceTemplate {
+  id          String                 @id @default(cuid())
+  name        String
+  description String?
+  lineItems   InvoiceTemplateItem[]
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+}
+
+model InvoiceTemplateItem {
+  id          String          @id @default(cuid())
+  templateId  String
+  template    InvoiceTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  description String
+  quantity    Float           @default(1)
+  unit        String          @default("hour")
+  unitPrice   Float           @default(0)
+  discount    Float           @default(0)
+  taxRate     Float           @default(17)
+  sortOrder   Int             @default(0)
+  serviceId   String?
+  service     Service?        @relation(fields: [serviceId], references: [id], onDelete: SetNull)
 }
