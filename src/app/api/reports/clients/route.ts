@@ -2,10 +2,13 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAuth, AuthError } from "@/lib/auth";
 import { differenceInDays } from "date-fns";
+import { getBaseCurrency, convertToBase } from "@/lib/exchange-rates";
 
 export async function GET() {
   try {
     await requireAuth();
+
+    const baseCurrency = await getBaseCurrency();
 
     const clients = await prisma.client.findMany({
       include: {
@@ -15,6 +18,7 @@ export async function GET() {
             invoiceNumber: true,
             total: true,
             currency: true,
+            exchangeRate: true,
             status: true,
             issueDate: true,
             dueDate: true,
@@ -26,17 +30,23 @@ export async function GET() {
       orderBy: { name: "asc" },
     });
 
-    const clientAnalysis = clients
+    const clientAnalysis = await Promise.all(clients
       .filter((c) => c.invoices.length > 0)
-      .map((client) => {
+      .map(async (client) => {
         const invoices = client.invoices;
         const paidInvoices = invoices.filter((i) => i.status === "paid" && i.paidAt);
         const outstandingInvoices = invoices.filter((i) => ["sent", "overdue"].includes(i.status));
         const overdueInvoices = invoices.filter((i) => i.status === "overdue");
 
-        // Revenue
-        const totalRevenue = paidInvoices.reduce((sum, i) => Math.round((sum + i.total) * 100) / 100, 0);
-        const totalOutstanding = outstandingInvoices.reduce((sum, i) => Math.round((sum + i.total) * 100) / 100, 0);
+        // Revenue (converted to base currency)
+        let totalRevenue = 0;
+        for (const i of paidInvoices) {
+          totalRevenue = Math.round((totalRevenue + await convertToBase(i.total, i.currency, baseCurrency, i.exchangeRate)) * 100) / 100;
+        }
+        let totalOutstanding = 0;
+        for (const i of outstandingInvoices) {
+          totalOutstanding = Math.round((totalOutstanding + await convertToBase(i.total, i.currency, baseCurrency, i.exchangeRate)) * 100) / 100;
+        }
 
         // Payment speed analysis
         const paymentDays = paidInvoices
@@ -108,8 +118,9 @@ export async function GET() {
             paidAt: i.paidAt,
           })),
         };
-      })
-      .sort((a, b) => b.totalRevenue - a.totalRevenue);
+      }));
+
+    clientAnalysis.sort((a, b) => b.totalRevenue - a.totalRevenue);
 
     // Global stats
     const totalClients = clientAnalysis.length;

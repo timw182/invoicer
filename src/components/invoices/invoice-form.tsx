@@ -136,6 +136,28 @@ export function InvoiceForm({
     (initialData as unknown as Record<string, unknown>)?.customerReference as string || ""
   );
   const [notes, setNotes] = useState(initialData?.notes || "");
+  const [exchangeRate, setExchangeRate] = useState<string>(
+    (initialData as unknown as Record<string, unknown>)?.exchangeRate
+      ? String((initialData as unknown as Record<string, unknown>).exchangeRate)
+      : ""
+  );
+  const [fetchingRate, setFetchingRate] = useState(false);
+
+  // Auto-fetch exchange rate when currency changes
+  useEffect(() => {
+    if (currency === businessProfile.defaultCurrency) {
+      setExchangeRate("");
+      return;
+    }
+    setFetchingRate(true);
+    fetch(`/api/exchange-rates?from=${businessProfile.defaultCurrency}&to=${currency}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.rate) setExchangeRate(String(Math.round(data.rate * 10000) / 10000));
+      })
+      .catch(() => {})
+      .finally(() => setFetchingRate(false));
+  }, [currency, businessProfile.defaultCurrency]);
   const [lineItems, setLineItems] = useState<LineItemData[]>(
     initialData?.lineItems.map((li) => ({
       serviceId: li.serviceId || undefined,
@@ -256,6 +278,7 @@ export function InvoiceForm({
         paymentTermDays,
         currency,
         customerReference: customerReference || null,
+        exchangeRate: exchangeRate ? parseFloat(exchangeRate) : null,
         notes: notes || null,
         lineItems: effectiveLineItems.map((li, i) => ({
           serviceId: li.serviceId || null,
@@ -379,14 +402,33 @@ export function InvoiceForm({
               />
             </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="customerReference">Customer Reference / PO Number (optional)</Label>
-            <Input
-              id="customerReference"
-              value={customerReference}
-              onChange={(e) => setCustomerReference(e.target.value)}
-              placeholder="e.g. PO-2026-001"
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="customerReference">Customer Reference / PO Number (optional)</Label>
+              <Input
+                id="customerReference"
+                value={customerReference}
+                onChange={(e) => setCustomerReference(e.target.value)}
+                placeholder="e.g. PO-2026-001"
+              />
+            </div>
+            {currency !== businessProfile.defaultCurrency && (
+              <div className="space-y-2">
+                <Label htmlFor="exchangeRate">
+                  Exchange Rate (1 {businessProfile.defaultCurrency} = ? {currency})
+                  {fetchingRate && <span className="ml-1 text-xs text-muted-foreground">fetching...</span>}
+                </Label>
+                <Input
+                  id="exchangeRate"
+                  type="number"
+                  step="0.0001"
+                  min="0"
+                  value={exchangeRate}
+                  onChange={(e) => setExchangeRate(e.target.value)}
+                  placeholder="Auto-fetched from ECB"
+                />
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

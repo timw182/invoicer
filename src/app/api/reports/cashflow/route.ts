@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAuth, AuthError } from "@/lib/auth";
 import { startOfMonth, subMonths, format, addDays } from "date-fns";
+import { getBaseCurrency, convertToBase } from "@/lib/exchange-rates";
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,10 +12,12 @@ export async function GET(request: NextRequest) {
 
     const startDate = startOfMonth(subMonths(new Date(), months - 1));
 
+    const baseCurrency = await getBaseCurrency();
+
     // Actual cash inflows: paid invoices by paidAt date
     const paidInvoices = await prisma.invoice.findMany({
       where: { status: "paid", paidAt: { gte: startDate } },
-      select: { total: true, paidAt: true, currency: true },
+      select: { total: true, paidAt: true, currency: true, exchangeRate: true },
     });
 
     // Actual cash outflows: expense transactions
@@ -26,7 +29,7 @@ export async function GET(request: NextRequest) {
     // Projected inflows: outstanding invoices by due date
     const outstanding = await prisma.invoice.findMany({
       where: { status: { in: ["sent", "overdue"] } },
-      select: { total: true, dueDate: true, currency: true, status: true },
+      select: { total: true, dueDate: true, currency: true, exchangeRate: true, status: true },
     });
 
     // Build monthly data
@@ -57,7 +60,8 @@ export async function GET(request: NextRequest) {
       const key = format(inv.paidAt, "yyyy-MM");
       const entry = monthlyMap.get(key);
       if (entry) {
-        entry.inflow = Math.round((entry.inflow + inv.total) * 100) / 100;
+        const converted = await convertToBase(inv.total, inv.currency, baseCurrency, inv.exchangeRate);
+        entry.inflow = Math.round((entry.inflow + converted) * 100) / 100;
       }
     }
 
@@ -73,7 +77,8 @@ export async function GET(request: NextRequest) {
       const key = format(inv.dueDate, "yyyy-MM");
       const entry = monthlyMap.get(key);
       if (entry) {
-        entry.projectedInflow = Math.round((entry.projectedInflow + inv.total) * 100) / 100;
+        const converted = await convertToBase(inv.total, inv.currency, baseCurrency, inv.exchangeRate);
+        entry.projectedInflow = Math.round((entry.projectedInflow + converted) * 100) / 100;
       }
     }
 
@@ -91,15 +96,22 @@ export async function GET(request: NextRequest) {
     const currentMonthKey = format(new Date(), "yyyy-MM");
     const currentMonth = monthly.find((m) => m.month === currentMonthKey);
 
-    const totalInflow = paidInvoices.reduce((sum, inv) => Math.round((sum + inv.total) * 100) / 100, 0);
+    let totalInflow = 0;
+    for (const inv of paidInvoices) {
+      totalInflow = Math.round((totalInflow + await convertToBase(inv.total, inv.currency, baseCurrency, inv.exchangeRate)) * 100) / 100;
+    }
     const totalOutflow = expenses.reduce((sum, exp) => Math.round((sum + exp.amount) * 100) / 100, 0);
-    const totalProjected = outstanding.reduce((sum, inv) => Math.round((sum + inv.total) * 100) / 100, 0);
+    let totalProjected = 0;
+    for (const inv of outstanding) {
+      totalProjected = Math.round((totalProjected + await convertToBase(inv.total, inv.currency, baseCurrency, inv.exchangeRate)) * 100) / 100;
+    }
 
     // Upcoming receivables (next 30 days)
     const thirtyDaysOut = addDays(new Date(), 30);
-    const upcomingReceivables = outstanding
-      .filter((inv) => inv.dueDate <= thirtyDaysOut)
-      .reduce((sum, inv) => Math.round((sum + inv.total) * 100) / 100, 0);
+    let upcomingReceivables = 0;
+    for (const inv of outstanding.filter((inv) => inv.dueDate <= thirtyDaysOut)) {
+      upcomingReceivables = Math.round((upcomingReceivables + await convertToBase(inv.total, inv.currency, baseCurrency, inv.exchangeRate)) * 100) / 100;
+    }
 
     return NextResponse.json({
       monthly,

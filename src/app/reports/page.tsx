@@ -13,6 +13,7 @@ interface PLReport {
   totalIncome: number;
   totalExpenses: number;
   netProfit: number;
+  baseCurrency?: string;
   incomeByCategory: Array<{ name: string; color: string | null; total: number }>;
   expenseByCategory: Array<{ name: string; color: string | null; total: number }>;
 }

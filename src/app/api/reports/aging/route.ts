@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAuth, AuthError } from "@/lib/auth";
 import { differenceInDays } from "date-fns";
+import { getBaseCurrency, convertToBase } from "@/lib/exchange-rates";
 
 export async function GET() {
   try {
@@ -14,6 +15,7 @@ export async function GET() {
     });
 
     const now = new Date();
+    const baseCurrency = await getBaseCurrency();
 
     const buckets = {
       current: { label: "Not yet due", invoices: [] as typeof invoices, total: 0 },
@@ -27,6 +29,7 @@ export async function GET() {
 
     for (const inv of invoices) {
       const daysOverdue = differenceInDays(now, new Date(inv.dueDate));
+      const convertedTotal = await convertToBase(inv.total, inv.currency, baseCurrency, inv.exchangeRate);
 
       let bucket: keyof typeof buckets;
       if (daysOverdue <= 0) bucket = "current";
@@ -36,25 +39,28 @@ export async function GET() {
       else bucket = "90+";
 
       buckets[bucket].invoices.push(inv);
-      buckets[bucket].total = Math.round((buckets[bucket].total + inv.total) * 100) / 100;
+      buckets[bucket].total = Math.round((buckets[bucket].total + convertedTotal) * 100) / 100;
 
       // Client aggregation
       const existing = clientTotals.get(inv.clientId);
       if (existing) {
-        existing.total = Math.round((existing.total + inv.total) * 100) / 100;
+        existing.total = Math.round((existing.total + convertedTotal) * 100) / 100;
         existing.count += 1;
         existing.oldest = Math.max(existing.oldest, daysOverdue);
       } else {
         clientTotals.set(inv.clientId, {
           name: inv.client.name,
-          total: inv.total,
+          total: convertedTotal,
           count: 1,
           oldest: daysOverdue,
         });
       }
     }
 
-    const totalOutstanding = invoices.reduce((sum, inv) => Math.round((sum + inv.total) * 100) / 100, 0);
+    let totalOutstanding = 0;
+    for (const inv of invoices) {
+      totalOutstanding = Math.round((totalOutstanding + await convertToBase(inv.total, inv.currency, baseCurrency, inv.exchangeRate)) * 100) / 100;
+    }
 
     const summary = Object.entries(buckets).map(([key, b]) => ({
       bucket: key,
