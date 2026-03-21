@@ -333,7 +333,7 @@ export function InvoiceForm({
           <CardTitle>Invoice Details</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="client">Client</Label>
               <Select
@@ -370,7 +370,7 @@ export function InvoiceForm({
               </Select>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="issueDate">Issue Date</Label>
               <Input
@@ -402,7 +402,7 @@ export function InvoiceForm({
               />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="customerReference">Customer Reference / PO Number (optional)</Label>
               <Input
@@ -473,7 +473,7 @@ export function InvoiceForm({
           </div>
         </CardHeader>
         <CardContent>
-          <div className="mb-3 grid grid-cols-[2fr_3fr_1fr_1fr_1fr_1fr_1fr_2fr_auto] gap-2 text-xs font-medium text-muted-foreground">
+          <div className="mb-3 hidden lg:grid grid-cols-[2fr_3fr_1fr_1fr_1fr_1fr_1fr_2fr_auto] gap-2 text-xs font-medium text-muted-foreground">
             <div>Service</div>
             <div>Description</div>
             <div>Qty</div>

@@ -139,9 +139,9 @@ export default function DashboardPage() {
         title="Dashboard"
         description="Overview of your invoicing"
         action={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {lastUpdated && (
-              <span className="text-xs text-muted-foreground">
+              <span className="hidden sm:inline text-xs text-muted-foreground">
                 Updated {lastUpdated.toLocaleTimeString()}
               </span>
             )}
@@ -151,13 +151,13 @@ export default function DashboardPage() {
               onClick={() => fetchStats(true)}
               disabled={refreshing}
             >
-              <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${refreshing ? "animate-spin" : ""}`} />
-              Refresh
+              <RefreshCw className={`h-3.5 w-3.5 sm:mr-1.5 ${refreshing ? "animate-spin" : ""}`} />
+              <span className="hidden sm:inline">Refresh</span>
             </Button>
             <Link href="/invoices/new">
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                New Invoice
+              <Button size="sm">
+                <Plus className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">New Invoice</span>
               </Button>
             </Link>
           </div>
