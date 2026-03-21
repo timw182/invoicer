@@ -257,3 +257,15 @@ model InvoiceTemplateItem {
   serviceId   String?
   service     Service?        @relation(fields: [serviceId], references: [id], onDelete: SetNull)
 }
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  userName  String?
+  action    String   // "create" | "update" | "delete" | "export" | "login" | "backup"
+  entity    String   // "invoice" | "client" | "user" | "settings" | "backup"
+  entityId  String?
+  details   String?
+  ipAddress String?
+  createdAt DateTime @default(now())
+}

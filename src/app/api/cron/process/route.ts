@@ -5,6 +5,8 @@ import { shouldReverseCharge, calculateLineItem } from "@/lib/vat";
 import { advanceDate } from "@/lib/recurring";
 import { addDays, subDays } from "date-fns";
 import { sendInvoiceEmail, sendReminderEmail } from "@/lib/email";
+import { performBackup } from "@/lib/backup";
+import { audit } from "@/lib/audit";
 
 const CRON_SECRET = process.env.CRON_SECRET;
 
@@ -236,6 +238,14 @@ export async function POST(request: Request) {
       generateReminders(),
     ]);
 
+    // Daily backup
+    const backupResult = await performBackup();
+    await audit({
+      action: "backup",
+      entity: "backup",
+      details: `Cron backup: ${backupResult.filename} (cloud: ${backupResult.cloud})`,
+    });
+
     return NextResponse.json({
       success: true,
       processedAt: new Date().toISOString(),
@@ -244,6 +254,7 @@ export async function POST(request: Request) {
       generatedInvoices,
       remindersCreated: reminders.length,
       reminders,
+      backup: backupResult,
     });
   } catch (error) {
     console.error("Cron processing failed:", error);
