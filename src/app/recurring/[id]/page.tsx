@@ -10,12 +10,15 @@ import { StatusBadge } from "@/components/invoices/status-badge";
 import { formatCurrency } from "@/lib/currency";
 import { formatDate } from "@/lib/utils";
 import { frequencyLabel } from "@/lib/recurring";
+import { getTranslations } from "next-intl/server";
 
 interface RecurringDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
 export default async function RecurringDetailPage({ params }: RecurringDetailPageProps) {
+  const t = await getTranslations("recurring");
+  const tc = await getTranslations("common");
   const { id } = await params;
 
   const recurring = await prisma.recurringInvoice.findUnique({
@@ -45,7 +48,7 @@ export default async function RecurringDetailPage({ params }: RecurringDetailPag
         action={
           <div className="flex gap-2">
             <Link href={`/recurring/${recurring.id}/edit`}>
-              <Button variant="outline">Edit Template</Button>
+              <Button variant="outline">{t("editTemplate")}</Button>
             </Link>
           </div>
         }
@@ -54,55 +57,55 @@ export default async function RecurringDetailPage({ params }: RecurringDetailPag
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Frequency</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("frequency")}</p>
             <p className="text-lg font-bold mt-1">{frequencyLabel(recurring.frequency)}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Next Invoice</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("nextInvoice")}</p>
             <p className="text-lg font-bold mt-1">{formatDate(recurring.nextGenerateAt)}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Est. Amount</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("estAmount")}</p>
             <p className="text-lg font-bold mt-1">{formatCurrency(estimatedNet, recurring.currency)}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Generated</p>
-            <p className="text-lg font-bold mt-1">{recurring.generatedCount} invoices</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("generated")}</p>
+            <p className="text-lg font-bold mt-1">{t("invoicesCount", { count: recurring.generatedCount })}</p>
           </CardContent>
         </Card>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Template Details</CardTitle>
+          <CardTitle>{t("templateDetails")}</CardTitle>
         </CardHeader>
         <CardContent>
           <dl className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
-              <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</dt>
+              <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{tc("status")}</dt>
               <dd className="mt-1">
                 <Badge variant={recurring.active ? "default" : "secondary"}>
-                  {recurring.active ? "Active" : "Paused"}
+                  {recurring.active ? tc("active") : tc("paused")}
                 </Badge>
               </dd>
             </div>
             <div>
-              <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Auto-send</dt>
-              <dd className="mt-1">{recurring.autoSend ? "Yes" : "No"}</dd>
+              <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("autoSend")}</dt>
+              <dd className="mt-1">{recurring.autoSend ? tc("yes") : tc("no")}</dd>
             </div>
             <div>
-              <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Start Date</dt>
+              <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("startDate")}</dt>
               <dd className="mt-1">{formatDate(recurring.startDate)}</dd>
             </div>
             <div>
-              <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wider">End Date</dt>
-              <dd className="mt-1">{recurring.endDate ? formatDate(recurring.endDate) : "Indefinite"}</dd>
+              <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("endDate")}</dt>
+              <dd className="mt-1">{recurring.endDate ? formatDate(recurring.endDate) : t("indefinite")}</dd>
             </div>
           </dl>
         </CardContent>
@@ -110,13 +113,13 @@ export default async function RecurringDetailPage({ params }: RecurringDetailPag
 
       <Card>
         <CardHeader>
-          <CardTitle>Line Items</CardTitle>
+          <CardTitle>{t("lineItems")}</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Description</TableHead>
+                <TableHead>{tc("description")}</TableHead>
                 <TableHead className="text-right">Qty</TableHead>
                 <TableHead>Unit</TableHead>
                 <TableHead className="text-right">Price</TableHead>
@@ -145,20 +148,20 @@ export default async function RecurringDetailPage({ params }: RecurringDetailPag
 
       <Card>
         <CardHeader>
-          <CardTitle>Generated Invoices</CardTitle>
+          <CardTitle>{t("generatedInvoices")}</CardTitle>
         </CardHeader>
         <CardContent>
           {recurring.generatedInvoices.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-4">No invoices generated yet.</p>
+            <p className="text-sm text-muted-foreground py-4">{t("noInvoicesGenerated")}</p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Invoice #</TableHead>
-                  <TableHead>Issue Date</TableHead>
-                  <TableHead>Due Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
+                  <TableHead>{t("invoiceNumber")}</TableHead>
+                  <TableHead>{t("issueDate")}</TableHead>
+                  <TableHead>{t("dueDate")}</TableHead>
+                  <TableHead>{tc("status")}</TableHead>
+                  <TableHead className="text-right">{tc("total")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,8 @@ interface PLReport {
 }
 
 export default function ReportsPage() {
+  const t = useTranslations("reports");
+  const tc = useTranslations("common");
   const [report, setReport] = useState<PLReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [fromDate, setFromDate] = useState(() => {
@@ -39,14 +42,14 @@ export default function ReportsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Reports"
-        description="Profit & Loss and expense breakdown"
+        title={t("title")}
+        description={t("description")}
         action={
           <div className="flex items-center gap-2">
-            <Link href="/reports/aging"><Button variant="outline" size="sm">Aging</Button></Link>
-            <Link href="/reports/cashflow"><Button variant="outline" size="sm">Cash Flow</Button></Link>
-            <Link href="/reports/clients"><Button variant="outline" size="sm">Clients</Button></Link>
-            <Link href="/reports/tax"><Button variant="outline" size="sm">Tax</Button></Link>
+            <Link href="/reports/aging"><Button variant="outline" size="sm">{t("aging")}</Button></Link>
+            <Link href="/reports/cashflow"><Button variant="outline" size="sm">{t("cashFlow")}</Button></Link>
+            <Link href="/reports/clients"><Button variant="outline" size="sm">{t("clientsReport")}</Button></Link>
+            <Link href="/reports/tax"><Button variant="outline" size="sm">{t("tax")}</Button></Link>
           </div>
         }
       />
@@ -55,11 +58,11 @@ export default function ReportsPage() {
         <CardContent className="pt-6">
           <div className="flex items-end gap-3">
             <div className="space-y-1">
-              <span className="text-xs font-medium text-muted-foreground">From</span>
+              <span className="text-xs font-medium text-muted-foreground">{tc("from")}</span>
               <Input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
             </div>
             <div className="space-y-1">
-              <span className="text-xs font-medium text-muted-foreground">To</span>
+              <span className="text-xs font-medium text-muted-foreground">{tc("to")}</span>
               <Input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
             </div>
           </div>
@@ -73,19 +76,19 @@ export default function ReportsPage() {
           <div className="grid grid-cols-3 gap-4">
             <Card>
               <CardContent className="pt-6">
-                <p className="text-xs font-medium text-muted-foreground uppercase">Total Income</p>
+                <p className="text-xs font-medium text-muted-foreground uppercase">{t("totalIncome")}</p>
                 <p className="text-2xl font-bold text-emerald-600 mt-1">{formatCurrency(report.totalIncome)}</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6">
-                <p className="text-xs font-medium text-muted-foreground uppercase">Total Expenses</p>
+                <p className="text-xs font-medium text-muted-foreground uppercase">{t("totalExpenses")}</p>
                 <p className="text-2xl font-bold text-red-600 mt-1">{formatCurrency(report.totalExpenses)}</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6">
-                <p className="text-xs font-medium text-muted-foreground uppercase">Net Profit</p>
+                <p className="text-xs font-medium text-muted-foreground uppercase">{t("netProfit")}</p>
                 <p className={`text-2xl font-bold mt-1 ${report.netProfit >= 0 ? "text-emerald-600" : "text-red-600"}`}>
                   {formatCurrency(report.netProfit)}
                 </p>
@@ -95,10 +98,10 @@ export default function ReportsPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
-              <CardHeader><CardTitle className="text-base">Income by Category</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-base">{t("incomeByCategory")}</CardTitle></CardHeader>
               <CardContent>
                 {report.incomeByCategory.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No income in this period.</p>
+                  <p className="text-sm text-muted-foreground">{t("noIncomeInPeriod")}</p>
                 ) : (
                   <div className="space-y-3">
                     {report.incomeByCategory.map((cat) => (
@@ -127,10 +130,10 @@ export default function ReportsPage() {
             </Card>
 
             <Card>
-              <CardHeader><CardTitle className="text-base">Expenses by Category</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-base">{t("expensesByCategory")}</CardTitle></CardHeader>
               <CardContent>
                 {report.expenseByCategory.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No expenses in this period.</p>
+                  <p className="text-sm text-muted-foreground">{t("noExpensesInPeriod")}</p>
                 ) : (
                   <div className="space-y-3">
                     {report.expenseByCategory.map((cat) => (

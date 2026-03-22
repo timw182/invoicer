@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,8 @@ interface Template {
 }
 
 export default function TemplatesPage() {
+  const t = useTranslations("templates");
+  const tc = useTranslations("common");
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -39,7 +42,7 @@ export default function TemplatesPage() {
   }, []);
 
   async function handleDelete(id: string) {
-    if (!confirm("Delete this template?")) return;
+    if (!confirm(t("deleteConfirm"))) return;
     const res = await fetch(`/api/templates/${id}`, { method: "DELETE" });
     if (res.ok) setTemplates((prev) => prev.filter((t) => t.id !== id));
   }
@@ -47,8 +50,8 @@ export default function TemplatesPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Invoice Templates" description="Pre-made invoice line item templates" />
-        <div className="text-muted-foreground">Loading...</div>
+        <PageHeader title={t("title")} description={t("descriptionShort")} />
+        <div className="text-muted-foreground">{tc("loading")}</div>
       </div>
     );
   }
@@ -56,13 +59,13 @@ export default function TemplatesPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Invoice Templates"
-        description="Pre-made invoice line item templates for quick invoice creation"
+        title={t("title")}
+        description={t("description")}
         action={
           <Link href="/templates/new">
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              New Template
+              {t("newTemplate")}
             </Button>
           </Link>
         }
@@ -72,7 +75,7 @@ export default function TemplatesPage() {
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">
             <FileText className="h-10 w-10 mx-auto mb-3 opacity-40" />
-            <p>No templates yet. Create one to speed up invoice creation.</p>
+            <p>{t("noTemplates")}</p>
           </CardContent>
         </Card>
       ) : (
@@ -85,7 +88,9 @@ export default function TemplatesPage() {
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="font-semibold text-sm">{tpl.name}</h3>
                       <Badge variant="secondary" className="text-xs">
-                        {tpl.lineItems.length} line{tpl.lineItems.length !== 1 ? "s" : ""}
+                        {tpl.lineItems.length !== 1
+                          ? t("lineCountPlural", { count: tpl.lineItems.length })
+                          : t("lineCount", { count: tpl.lineItems.length })}
                       </Badge>
                     </div>
                     {tpl.description && (

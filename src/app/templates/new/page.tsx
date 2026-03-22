@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -41,6 +42,8 @@ const emptyLine: TemplateLineItem = {
 };
 
 export default function NewTemplatePage() {
+  const t = useTranslations("templates");
+  const tc = useTranslations("common");
   const router = useRouter();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -102,19 +105,19 @@ export default function NewTemplatePage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="New Template" description="Create a reusable invoice template" />
+      <PageHeader title={t("newTemplate")} description={t("newDescription")} />
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <Card>
-          <CardHeader><CardTitle>Template Details</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{t("templateDetails")}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Template Name</Label>
-              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required placeholder="e.g. Monthly Consulting" />
+              <Label htmlFor="name">{t("templateName")}</Label>
+              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required placeholder={t("templateNamePlaceholder")} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="description">Description (optional)</Label>
-              <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Short description of what this template is for" />
+              <Label htmlFor="description">{t("descriptionOptional")}</Label>
+              <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder={t("descriptionPlaceholder")} />
             </div>
           </CardContent>
         </Card>
@@ -122,9 +125,9 @@ export default function NewTemplatePage() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>Line Items</CardTitle>
+              <CardTitle>{t("lineItems")}</CardTitle>
               <Button type="button" variant="outline" size="sm" onClick={() => setLineItems((prev) => [...prev, { ...emptyLine }])}>
-                <Plus className="h-3.5 w-3.5 mr-1" /> Add Line
+                <Plus className="h-3.5 w-3.5 mr-1" /> {t("addLine")}
               </Button>
             </div>
           </CardHeader>
@@ -133,7 +136,7 @@ export default function NewTemplatePage() {
               {lineItems.map((li, idx) => (
                 <div key={idx} className="rounded-lg border p-4 space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-muted-foreground uppercase">Line {idx + 1}</span>
+                    <span className="text-xs font-semibold text-muted-foreground uppercase">{t("line", { index: idx + 1 })}</span>
                     {lineItems.length > 1 && (
                       <Button type="button" variant="ghost" size="sm" onClick={() => removeLine(idx)} className="text-red-600 hover:text-red-700 h-7 px-2">
                         <Trash2 className="h-3.5 w-3.5" />
@@ -143,7 +146,7 @@ export default function NewTemplatePage() {
 
                   {services.length > 0 && (
                     <div className="space-y-1">
-                      <Label className="text-xs">Service (optional)</Label>
+                      <Label className="text-xs">{t("serviceOptional")}</Label>
                       <Select value={li.serviceId || ""} onChange={(e) => e.target.value ? selectService(idx, e.target.value) : updateLine(idx, "serviceId", null)}>
                         <option value="">— Manual entry —</option>
                         {services.map((s) => (
@@ -154,7 +157,7 @@ export default function NewTemplatePage() {
                   )}
 
                   <div className="space-y-1">
-                    <Label className="text-xs">Description</Label>
+                    <Label className="text-xs">{tc("description")}</Label>
                     <Input value={li.description} onChange={(e) => updateLine(idx, "description", e.target.value)} required />
                   </div>
 
@@ -194,7 +197,7 @@ export default function NewTemplatePage() {
         </Card>
 
         <Button type="submit" disabled={saving}>
-          {saving ? "Creating..." : "Create Template"}
+          {saving ? tc("creating") : t("createTemplate")}
         </Button>
       </form>
     </div>

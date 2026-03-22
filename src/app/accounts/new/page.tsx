@@ -9,8 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { SUPPORTED_CURRENCIES } from "@/lib/currency";
+import { useTranslations } from "next-intl";
 
 export default function NewAccountPage() {
+  const t = useTranslations("accounts");
+  const tc = useTranslations("common");
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState("");
@@ -40,23 +43,23 @@ export default function NewAccountPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="New Bank Account" />
+      <PageHeader title={t("newAccount")} />
       <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
         <Card>
-          <CardHeader><CardTitle>Account Details</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{t("accountDetails")}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>Account Name</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Business Checking" required />
+              <Label>{t("accountName")}</Label>
+              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("accountNamePlaceholder")} required />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Bank Name</Label>
-                <Input value={bankName} onChange={(e) => setBankName(e.target.value)} placeholder="Optional" />
+                <Input value={bankName} onChange={(e) => setBankName(e.target.value)} placeholder={tc("optional")} />
               </div>
               <div className="space-y-2">
                 <Label>IBAN</Label>
-                <Input value={iban} onChange={(e) => setIban(e.target.value)} placeholder="Optional" />
+                <Input value={iban} onChange={(e) => setIban(e.target.value)} placeholder={tc("optional")} />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -71,15 +74,15 @@ export default function NewAccountPage() {
               <div className="flex items-end pb-1">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={isDefault} onChange={(e) => setIsDefault(e.target.checked)} className="h-4 w-4 rounded border-gray-300" />
-                  <span className="text-sm font-medium">Default account</span>
+                  <span className="text-sm font-medium">{t("defaultAccount")}</span>
                 </label>
               </div>
             </div>
           </CardContent>
         </Card>
         <div className="flex gap-3">
-          <Button type="submit" disabled={loading}>{loading ? "Creating..." : "Create Account"}</Button>
-          <Button type="button" variant="outline" onClick={() => router.push("/accounts")}>Cancel</Button>
+          <Button type="submit" disabled={loading}>{loading ? tc("creating") : t("createAccount")}</Button>
+          <Button type="button" variant="outline" onClick={() => router.push("/accounts")}>{tc("cancel")}</Button>
         </div>
       </form>
     </div>

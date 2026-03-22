@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -34,15 +35,17 @@ interface ClientReport {
   clients: ClientData[];
 }
 
-function ratingBadge(onTimeRate: number | null) {
-  if (onTimeRate === null) return <Badge variant="secondary" className="text-xs">N/A</Badge>;
-  if (onTimeRate >= 90) return <Badge className="bg-emerald-100 text-emerald-700 text-xs">Excellent</Badge>;
-  if (onTimeRate >= 70) return <Badge className="bg-amber-100 text-amber-700 text-xs">Good</Badge>;
-  if (onTimeRate >= 50) return <Badge className="bg-orange-100 text-orange-700 text-xs">Fair</Badge>;
-  return <Badge className="bg-red-100 text-red-700 text-xs">Poor</Badge>;
+function ratingBadge(onTimeRate: number | null, t: (key: string) => string) {
+  if (onTimeRate === null) return <Badge variant="secondary" className="text-xs">{t("clientReport.na")}</Badge>;
+  if (onTimeRate >= 90) return <Badge className="bg-emerald-100 text-emerald-700 text-xs">{t("clientReport.excellent")}</Badge>;
+  if (onTimeRate >= 70) return <Badge className="bg-amber-100 text-amber-700 text-xs">{t("clientReport.good")}</Badge>;
+  if (onTimeRate >= 50) return <Badge className="bg-orange-100 text-orange-700 text-xs">{t("clientReport.fair")}</Badge>;
+  return <Badge className="bg-red-100 text-red-700 text-xs">{t("clientReport.poor")}</Badge>;
 }
 
 export default function ClientAnalysisPage() {
+  const t = useTranslations("reports");
+  const tc = useTranslations("common");
   const [report, setReport] = useState<ClientReport | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -57,7 +60,7 @@ export default function ClientAnalysisPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Client Analysis" description="Payment behavior and revenue by client" />
+        <PageHeader title={t("clientReport.title")} description={t("clientReport.description")} />
         <Card><CardContent className="p-5"><div className="h-48 animate-pulse rounded bg-muted" /></CardContent></Card>
       </div>
     );
@@ -66,34 +69,34 @@ export default function ClientAnalysisPage() {
   if (!report) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Client Analysis" description="Payment behavior and revenue by client" />
-        <Card><CardContent className="p-8 text-center text-muted-foreground">Failed to load report.</CardContent></Card>
+        <PageHeader title={t("clientReport.title")} description={t("clientReport.description")} />
+        <Card><CardContent className="p-8 text-center text-muted-foreground">{tc("failedToLoad")}</CardContent></Card>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Client Analysis" description="Payment behavior and revenue by client" />
+      <PageHeader title={t("clientReport.title")} description={t("clientReport.description")} />
 
       {/* Summary */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6">
-            <p className="text-xs font-medium text-muted-foreground uppercase">Active Clients</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase">{t("clientReport.activeClients")}</p>
             <p className="text-2xl font-bold mt-1">{report.totalClients}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-xs font-medium text-muted-foreground uppercase">Avg Days to Payment</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase">{t("clientReport.avgDaysToPayment")}</p>
             <p className="text-2xl font-bold mt-1">{report.avgDSO > 0 ? `${report.avgDSO}d` : "—"}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">DSO (Days Sales Outstanding)</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{t("clientReport.dsoDaysSalesOutstanding")}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-xs font-medium text-muted-foreground uppercase">Top Revenue Client</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase">{t("clientReport.topRevenueClient")}</p>
             <p className="text-lg font-bold mt-1 truncate">{report.topRevenue[0]?.clientName || "—"}</p>
             {report.topRevenue[0] && (
               <p className="text-sm text-emerald-600 font-medium">{formatCurrency(report.topRevenue[0].totalRevenue)}</p>
@@ -102,9 +105,9 @@ export default function ClientAnalysisPage() {
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-xs font-medium text-muted-foreground uppercase">Late Payers</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase">{t("clientReport.latePayers")}</p>
             <p className="text-2xl font-bold mt-1 text-amber-600">{report.latePayers.length}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Below 70% on-time rate</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{t("clientReport.below70OnTime")}</p>
           </CardContent>
         </Card>
       </div>
@@ -113,7 +116,7 @@ export default function ClientAnalysisPage() {
       {report.latePayers.length > 0 && (
         <Card className="border-amber-200">
           <CardHeader>
-            <CardTitle className="text-base text-amber-700">Clients with Late Payment Patterns</CardTitle>
+            <CardTitle className="text-base text-amber-700">{t("clientReport.latePaymentPatterns")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
@@ -121,10 +124,15 @@ export default function ClientAnalysisPage() {
                 <div key={c.clientId} className="flex items-center justify-between rounded-lg border border-amber-100 bg-amber-50/50 p-3">
                   <div>
                     <Link href={`/clients/${c.clientId}`} className="font-medium text-sm hover:underline">{c.clientName}</Link>
-                    <p className="text-xs text-muted-foreground">{c.latePaymentCount} late payment{c.latePaymentCount !== 1 ? "s" : ""}, avg {c.avgLateDays}d late</p>
+                    <p className="text-xs text-muted-foreground">
+                      {c.latePaymentCount !== 1
+                        ? t("clientReport.latePaymentCountPlural", { count: c.latePaymentCount })
+                        : t("clientReport.latePaymentCount", { count: c.latePaymentCount })}
+                      , {t("clientReport.avgDaysLate", { days: c.avgLateDays })}
+                    </p>
                   </div>
                   <div className="text-right">
-                    <span className="text-sm font-medium text-amber-700">{c.onTimeRate}% on-time</span>
+                    <span className="text-sm font-medium text-amber-700">{t("clientReport.onTime", { rate: c.onTimeRate ?? 0 })}</span>
                   </div>
                 </div>
               ))}
@@ -135,21 +143,21 @@ export default function ClientAnalysisPage() {
 
       {/* Full Client Table */}
       <Card>
-        <CardHeader><CardTitle className="text-base">All Clients</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">{t("clientReport.allClients")}</CardTitle></CardHeader>
         <CardContent>
           {report.clients.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">No clients with invoices yet.</p>
+            <p className="text-sm text-muted-foreground text-center py-4">{t("clientReport.noClientsWithInvoices")}</p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-xs font-semibold uppercase">Client</TableHead>
-                  <TableHead className="text-xs font-semibold uppercase text-right">Invoices</TableHead>
-                  <TableHead className="text-xs font-semibold uppercase text-right">Revenue</TableHead>
-                  <TableHead className="text-xs font-semibold uppercase text-right">Outstanding</TableHead>
-                  <TableHead className="text-xs font-semibold uppercase text-right">Avg Days to Pay</TableHead>
-                  <TableHead className="text-xs font-semibold uppercase text-right">On-Time %</TableHead>
-                  <TableHead className="text-xs font-semibold uppercase text-center">Rating</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase">{t("agingReport.client")}</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase text-right">{t("agingReport.invoices")}</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase text-right">{t("clientReport.revenue")}</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase text-right">{t("agingReport.totalOutstanding")}</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase text-right">{t("clientReport.avgDaysToPay")}</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase text-right">{t("clientReport.onTimePercent")}</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase text-center">{t("clientReport.rating")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -185,7 +193,7 @@ export default function ClientAnalysisPage() {
                         </span>
                       ) : "—"}
                     </TableCell>
-                    <TableCell className="text-center">{ratingBadge(c.onTimeRate)}</TableCell>
+                    <TableCell className="text-center">{ratingBadge(c.onTimeRate, t)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
+import { useTranslations } from "next-intl";
 
 interface StatsCardsProps {
   stats: {
@@ -20,7 +21,6 @@ interface StatsCardsProps {
 
 interface StatCard {
   key: "totalBalance" | "income" | "outstanding" | "overdue" | "totalRevenue" | "totalInvoices";
-  label: string;
   icon: React.ComponentType<{ className?: string }>;
   color: string;
   bg: string;
@@ -31,7 +31,6 @@ interface StatCard {
 const cards: StatCard[] = [
   {
     key: "totalBalance",
-    label: "Total Balance",
     icon: Landmark,
     color: "text-emerald-600",
     bg: "bg-emerald-50",
@@ -40,7 +39,6 @@ const cards: StatCard[] = [
   },
   {
     key: "income",
-    label: "Income",
     icon: TrendingUp,
     color: "text-green-600",
     bg: "bg-green-50",
@@ -49,7 +47,6 @@ const cards: StatCard[] = [
   },
   {
     key: "outstanding",
-    label: "Outstanding",
     icon: Clock,
     color: "text-blue-600",
     bg: "bg-blue-50",
@@ -58,7 +55,6 @@ const cards: StatCard[] = [
   },
   {
     key: "overdue",
-    label: "Overdue",
     icon: AlertCircle,
     color: "text-red-600",
     bg: "bg-red-50",
@@ -67,7 +63,6 @@ const cards: StatCard[] = [
   },
   {
     key: "totalRevenue",
-    label: "Total Revenue",
     icon: DollarSign,
     color: "text-violet-600",
     bg: "bg-violet-50",
@@ -76,7 +71,6 @@ const cards: StatCard[] = [
   },
   {
     key: "totalInvoices",
-    label: "Total Invoices",
     icon: FileText,
     color: "text-slate-600",
     bg: "bg-slate-50",
@@ -87,6 +81,7 @@ const cards: StatCard[] = [
 
 export function StatsCards({ stats }: StatsCardsProps) {
   const { user } = useAuth();
+  const t = useTranslations("dashboard");
   const isAdmin = user?.role === "admin";
   const visibleCards = cards.filter((c) => !c.adminOnly || isAdmin);
   return (
@@ -102,7 +97,7 @@ export function StatsCards({ stats }: StatsCardsProps) {
               <CardContent className="p-5">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-sm font-medium text-muted-foreground">
-                    {card.label}
+                    {t(card.key)}
                   </span>
                   <div className={cn("rounded-lg p-2", card.bg)}>
                     <Icon className={cn("h-4 w-4", card.color)} />
@@ -113,7 +108,9 @@ export function StatsCards({ stats }: StatsCardsProps) {
                 </div>
                 {card.key === "overdue" && stats.overdueCount > 0 && (
                   <p className="text-xs text-muted-foreground mt-1">
-                    {stats.overdueCount} invoice{stats.overdueCount !== 1 ? "s" : ""} overdue
+                    {stats.overdueCount !== 1
+                      ? t("invoicesOverduePlural", { count: stats.overdueCount })
+                      : t("invoicesOverdue", { count: stats.overdueCount })}
                   </p>
                 )}
               </CardContent>

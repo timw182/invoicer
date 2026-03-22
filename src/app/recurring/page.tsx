@@ -7,8 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { RecurringTable } from "@/components/recurring/recurring-table";
 import { Plus } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function RecurringPage() {
+  const t = useTranslations("recurring");
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -28,7 +30,7 @@ export default function RecurringPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Recurring Invoices" />
+        <PageHeader title={t("title")} />
         <Card><CardContent className="p-5"><div className="h-64 animate-pulse rounded bg-muted" /></CardContent></Card>
       </div>
     );
@@ -37,13 +39,13 @@ export default function RecurringPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Recurring Invoices"
-        description="Automate invoice generation for subscriptions and retainers"
+        title={t("title")}
+        description={t("description")}
         action={
           <Link href="/recurring/new">
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              New Template
+              {t("newTemplate")}
             </Button>
           </Link>
         }

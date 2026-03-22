@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   Table,
   TableBody,
@@ -30,6 +31,8 @@ interface ClientTableProps {
 export function ClientTable({ clients }: ClientTableProps) {
   const router = useRouter();
   const [search, setSearch] = useState("");
+  const t = useTranslations("clients");
+  const tc = useTranslations("common");
 
   const filtered = clients.filter((client) => {
     const term = search.toLowerCase();
@@ -42,7 +45,7 @@ export function ClientTable({ clients }: ClientTableProps) {
   });
 
   const handleDelete = async (id: string, name: string) => {
-    if (!window.confirm(`Are you sure you want to delete "${name}"?`)) {
+    if (!window.confirm(t("deleteConfirm", { name }))) {
       return;
     }
 
@@ -60,7 +63,7 @@ export function ClientTable({ clients }: ClientTableProps) {
   return (
     <div className="space-y-4">
       <Input
-        placeholder="Search clients..."
+        placeholder={t("searchClients")}
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         className="max-w-sm"
@@ -69,18 +72,18 @@ export function ClientTable({ clients }: ClientTableProps) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Country</TableHead>
-            <TableHead>Tax ID</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead>{tc("name")}</TableHead>
+            <TableHead>{tc("email")}</TableHead>
+            <TableHead>{tc("country")}</TableHead>
+            <TableHead>{t("taxId")}</TableHead>
+            <TableHead className="text-right">{tc("actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {filtered.length === 0 ? (
             <TableRow>
               <TableCell colSpan={5} className="text-center text-muted-foreground">
-                No clients found.
+                {t("noClients")}
               </TableCell>
             </TableRow>
           ) : (
@@ -102,14 +105,14 @@ export function ClientTable({ clients }: ClientTableProps) {
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Button variant="outline" size="sm" asChild>
-                      <Link href={`/clients/${client.id}/edit`}>Edit</Link>
+                      <Link href={`/clients/${client.id}/edit`}>{tc("edit")}</Link>
                     </Button>
                     <Button
                       variant="destructive"
                       size="sm"
                       onClick={() => handleDelete(client.id, client.name)}
                     >
-                      Delete
+                      {tc("delete")}
                     </Button>
                   </div>
                 </TableCell>

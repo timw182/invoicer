@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Pencil, Send, CheckCircle, XCircle, Trash2, Download, Bell } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
@@ -17,6 +18,8 @@ export function InvoiceActions({ invoiceId, status }: InvoiceActionsProps) {
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
+  const t = useTranslations("invoices");
+  const tc = useTranslations("common");
 
   async function updateStatus(newStatus: string) {
     setLoading(true);
@@ -39,7 +42,7 @@ export function InvoiceActions({ invoiceId, status }: InvoiceActionsProps) {
   }
 
   async function handleDelete() {
-    if (!confirm("Are you sure you want to delete this invoice?")) return;
+    if (!confirm(t("deleteConfirm"))) return;
     setLoading(true);
     try {
       const response = await fetch(`/api/invoices/${invoiceId}`, {
@@ -86,7 +89,7 @@ export function InvoiceActions({ invoiceId, status }: InvoiceActionsProps) {
           <Link href={`/invoices/${invoiceId}/edit`}>
             <Button variant="outline" size="sm" disabled={loading}>
               <Pencil className="h-3.5 w-3.5 mr-1.5" />
-              Edit
+              {t("actions.edit")}
             </Button>
           </Link>
           <Button
@@ -95,7 +98,7 @@ export function InvoiceActions({ invoiceId, status }: InvoiceActionsProps) {
             onClick={() => updateStatus("sent")}
           >
             <Send className="h-3.5 w-3.5 mr-1.5" />
-            Mark as Sent
+            {t("actions.markAsSent")}
           </Button>
           <Button
             variant="destructive"
@@ -104,7 +107,7 @@ export function InvoiceActions({ invoiceId, status }: InvoiceActionsProps) {
             onClick={handleDelete}
           >
             <Trash2 className="h-3.5 w-3.5 mr-1.5" />
-            Delete
+            {tc("delete")}
           </Button>
         </>
       )}
@@ -119,7 +122,7 @@ export function InvoiceActions({ invoiceId, status }: InvoiceActionsProps) {
               className="bg-emerald-600 hover:bg-emerald-700 text-white"
             >
               <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
-              Mark as Paid
+              {t("actions.markAsPaid")}
             </Button>
           )}
           <Button
@@ -129,7 +132,7 @@ export function InvoiceActions({ invoiceId, status }: InvoiceActionsProps) {
             onClick={handleReminder}
           >
             <Bell className="h-3.5 w-3.5 mr-1.5" />
-            Send Reminder
+            {t("actions.sendReminder")}
           </Button>
           <Button
             variant="outline"
@@ -138,7 +141,7 @@ export function InvoiceActions({ invoiceId, status }: InvoiceActionsProps) {
             onClick={() => updateStatus("cancelled")}
           >
             <XCircle className="h-3.5 w-3.5 mr-1.5" />
-            Cancel
+            {t("actions.cancel")}
           </Button>
         </>
       )}
@@ -153,7 +156,7 @@ export function InvoiceActions({ invoiceId, status }: InvoiceActionsProps) {
               className="bg-emerald-600 hover:bg-emerald-700 text-white"
             >
               <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
-              Mark as Paid
+              {t("actions.markAsPaid")}
             </Button>
           )}
           <Button
@@ -163,14 +166,14 @@ export function InvoiceActions({ invoiceId, status }: InvoiceActionsProps) {
             onClick={handleReminder}
           >
             <Bell className="h-3.5 w-3.5 mr-1.5" />
-            Send Reminder
+            {t("actions.sendReminder")}
           </Button>
         </>
       )}
 
       <Button variant="outline" size="sm" onClick={handlePrint}>
         <Download className="h-3.5 w-3.5 mr-1.5" />
-        PDF
+        {t("actions.pdf")}
       </Button>
     </div>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { PageHeader } from "@/components/layout/page-header";
 import { StatsCards } from "@/components/dashboard/stats-cards";
@@ -73,6 +74,8 @@ interface DashboardStats {
 const POLL_INTERVAL = 30000;
 
 export default function DashboardPage() {
+  const t = useTranslations("dashboard");
+  const tc = useTranslations("common");
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -106,7 +109,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Dashboard" description="Overview of your invoicing" />
+        <PageHeader title={t("title")} description={t("description")} />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {[...Array(6)].map((_, i) => (
             <Card key={i}>
@@ -123,10 +126,10 @@ export default function DashboardPage() {
   if (!stats) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Dashboard" description="Overview of your invoicing" />
+        <PageHeader title={t("title")} description={t("description")} />
         <Card>
           <CardContent className="p-8 text-center text-muted-foreground">
-            Failed to load dashboard data. Please try refreshing.
+            {t("failedToLoad")}
           </CardContent>
         </Card>
       </div>
@@ -136,13 +139,13 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Dashboard"
-        description="Overview of your invoicing"
+        title={t("title")}
+        description={t("description")}
         action={
           <div className="flex flex-wrap items-center gap-2">
             {lastUpdated && (
               <span className="hidden sm:inline text-xs text-muted-foreground">
-                Updated {lastUpdated.toLocaleTimeString()}
+                {t("updated")} {lastUpdated.toLocaleTimeString()}
               </span>
             )}
             <Button
@@ -152,12 +155,12 @@ export default function DashboardPage() {
               disabled={refreshing}
             >
               <RefreshCw className={`h-3.5 w-3.5 sm:mr-1.5 ${refreshing ? "animate-spin" : ""}`} />
-              <span className="hidden sm:inline">Refresh</span>
+              <span className="hidden sm:inline">{tc("refresh")}</span>
             </Button>
             <Link href="/invoices/new">
               <Button size="sm">
                 <Plus className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">New Invoice</span>
+                <span className="hidden sm:inline">{t("newInvoice")}</span>
               </Button>
             </Link>
           </div>
@@ -176,7 +179,7 @@ export default function DashboardPage() {
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 text-amber-600" />
-              <CardTitle className="text-base font-semibold">Action Needed</CardTitle>
+              <CardTitle className="text-base font-semibold">{t("actionNeeded")}</CardTitle>
               <Badge variant="secondary" className="text-xs">{stats.actionNeeded.length}</Badge>
             </div>
           </CardHeader>
@@ -201,11 +204,11 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-4 text-sm">
                       {lastReminder && (
                         <span className="text-xs text-muted-foreground">
-                          Reminded {formatDate(lastReminder.sentAt)}
+                          {t("reminded")} {formatDate(lastReminder.sentAt)}
                         </span>
                       )}
                       <span className={`font-medium ${daysOverdue > 0 ? "text-red-600" : "text-amber-600"}`}>
-                        {daysOverdue > 0 ? `${daysOverdue}d overdue` : `Due in ${Math.abs(daysOverdue)}d`}
+                        {daysOverdue > 0 ? t("dOverdue", { days: daysOverdue }) : t("dueInD", { days: Math.abs(daysOverdue) })}
                       </span>
                       <span className="tabular-nums font-medium">{formatCurrency(inv.total, inv.currency)}</span>
                     </div>
@@ -224,10 +227,10 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Repeat className="h-4 w-4 text-blue-600" />
-                <CardTitle className="text-base font-semibold">Upcoming Auto-Invoices</CardTitle>
+                <CardTitle className="text-base font-semibold">{t("upcomingAutoInvoices")}</CardTitle>
               </div>
               <Link href="/recurring" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                View all
+                {t("viewAll")}
               </Link>
             </div>
           </CardHeader>
@@ -257,9 +260,9 @@ export default function DashboardPage() {
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-base font-semibold">Recent Invoices</CardTitle>
+            <CardTitle className="text-base font-semibold">{t("recentInvoices")}</CardTitle>
             <Link href="/invoices" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              View all
+              {t("viewAll")}
             </Link>
           </div>
         </CardHeader>

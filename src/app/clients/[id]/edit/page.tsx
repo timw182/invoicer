@@ -2,12 +2,14 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { PageHeader } from "@/components/layout/page-header";
 import { ClientForm } from "@/components/clients/client-form";
+import { getTranslations } from "next-intl/server";
 
 interface EditClientPageProps {
   params: Promise<{ id: string }>;
 }
 
 export default async function EditClientPage({ params }: EditClientPageProps) {
+  const t = await getTranslations("clients");
   const { id } = await params;
 
   const client = await prisma.client.findUnique({
@@ -20,7 +22,7 @@ export default async function EditClientPage({ params }: EditClientPageProps) {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Edit Client" />
+      <PageHeader title={t("editClient")} />
       <ClientForm
         initialData={{
           id: client.id,

@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
   Table,
@@ -11,6 +13,7 @@ import { StatusBadge } from "@/components/invoices/status-badge";
 import { formatCurrency } from "@/lib/currency";
 import { formatDate } from "@/lib/utils";
 import { FileText } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface Invoice {
   id: string;
@@ -26,15 +29,19 @@ interface OverdueListProps {
 }
 
 export function OverdueList({ invoices }: OverdueListProps) {
+  const td = useTranslations("dashboard");
+  const ti = useTranslations("invoices");
+  const tc = useTranslations("clients");
+
   if (invoices.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <div className="rounded-full bg-muted p-3 mb-3">
           <FileText className="h-6 w-6 text-muted-foreground" />
         </div>
-        <p className="text-sm font-medium text-muted-foreground">No invoices yet</p>
+        <p className="text-sm font-medium text-muted-foreground">{td("noInvoicesYet")}</p>
         <p className="text-xs text-muted-foreground mt-1">
-          Create your first invoice to get started
+          {td("createFirstInvoice")}
         </p>
       </div>
     );
@@ -44,11 +51,11 @@ export function OverdueList({ invoices }: OverdueListProps) {
     <Table>
       <TableHeader>
         <TableRow className="hover:bg-transparent">
-          <TableHead className="text-xs font-semibold uppercase tracking-wider">Number</TableHead>
-          <TableHead className="text-xs font-semibold uppercase tracking-wider">Client</TableHead>
-          <TableHead className="text-xs font-semibold uppercase tracking-wider text-right">Amount</TableHead>
-          <TableHead className="text-xs font-semibold uppercase tracking-wider">Status</TableHead>
-          <TableHead className="text-xs font-semibold uppercase tracking-wider">Due Date</TableHead>
+          <TableHead className="text-xs font-semibold uppercase tracking-wider">{ti("table.number")}</TableHead>
+          <TableHead className="text-xs font-semibold uppercase tracking-wider">{ti("table.client")}</TableHead>
+          <TableHead className="text-xs font-semibold uppercase tracking-wider text-right">{ti("table.total")}</TableHead>
+          <TableHead className="text-xs font-semibold uppercase tracking-wider">{ti("table.status")}</TableHead>
+          <TableHead className="text-xs font-semibold uppercase tracking-wider">{tc("dueDate")}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>

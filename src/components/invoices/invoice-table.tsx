@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   Table,
   TableBody,
@@ -32,6 +33,7 @@ interface InvoiceTableProps {
 }
 
 function DueInfo({ status, dueDate }: { status: string; dueDate: string | Date }) {
+  const t = useTranslations("invoices.table");
   const due = new Date(dueDate);
   const now = new Date();
   const daysOverdue = differenceInDays(now, due);
@@ -41,7 +43,7 @@ function DueInfo({ status, dueDate }: { status: string; dueDate: string | Date }
       <div>
         <span className="text-sm">{formatDate(dueDate)}</span>
         <span className="block text-xs font-medium text-red-600">
-          {daysOverdue}d overdue
+          {t("dOverdue", { days: daysOverdue })}
         </span>
       </div>
     );
@@ -52,7 +54,7 @@ function DueInfo({ status, dueDate }: { status: string; dueDate: string | Date }
       <div>
         <span className="text-sm">{formatDate(dueDate)}</span>
         <span className="block text-xs font-medium text-amber-600">
-          Due in {Math.abs(daysOverdue)}d
+          {t("dueInD", { days: Math.abs(daysOverdue) })}
         </span>
       </div>
     );
@@ -69,6 +71,7 @@ function DueInfo({ status, dueDate }: { status: string; dueDate: string | Date }
 
 export function InvoiceTable({ invoices }: InvoiceTableProps) {
   const router = useRouter();
+  const t = useTranslations("invoices");
 
   if (invoices.length === 0) {
     return (
@@ -76,7 +79,7 @@ export function InvoiceTable({ invoices }: InvoiceTableProps) {
         <div className="rounded-full bg-muted p-3 mb-3">
           <FileText className="h-6 w-6 text-muted-foreground" />
         </div>
-        <p className="text-sm font-medium text-muted-foreground">No invoices found</p>
+        <p className="text-sm font-medium text-muted-foreground">{t("noInvoices")}</p>
       </div>
     );
   }
@@ -85,12 +88,12 @@ export function InvoiceTable({ invoices }: InvoiceTableProps) {
     <Table>
       <TableHeader>
         <TableRow className="hover:bg-transparent">
-          <TableHead className="text-xs font-semibold uppercase tracking-wider">Number</TableHead>
-          <TableHead className="text-xs font-semibold uppercase tracking-wider">Client</TableHead>
-          <TableHead className="text-xs font-semibold uppercase tracking-wider">Issued</TableHead>
-          <TableHead className="text-xs font-semibold uppercase tracking-wider">Due</TableHead>
-          <TableHead className="text-xs font-semibold uppercase tracking-wider text-right">Total</TableHead>
-          <TableHead className="text-xs font-semibold uppercase tracking-wider">Status</TableHead>
+          <TableHead className="text-xs font-semibold uppercase tracking-wider">{t("table.number")}</TableHead>
+          <TableHead className="text-xs font-semibold uppercase tracking-wider">{t("table.client")}</TableHead>
+          <TableHead className="text-xs font-semibold uppercase tracking-wider">{t("table.issued")}</TableHead>
+          <TableHead className="text-xs font-semibold uppercase tracking-wider">{t("table.due")}</TableHead>
+          <TableHead className="text-xs font-semibold uppercase tracking-wider text-right">{t("table.total")}</TableHead>
+          <TableHead className="text-xs font-semibold uppercase tracking-wider">{t("table.status")}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>

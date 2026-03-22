@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -39,6 +40,8 @@ interface BusinessProfile {
 }
 
 export default function SettingsPage() {
+  const t = useTranslations("settings");
+  const tc = useTranslations("common");
   const [profile, setProfile] = useState<BusinessProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -108,11 +111,11 @@ export default function SettingsPage() {
         setTimeout(() => setSuccess(false), 3000);
       } else {
         const data = await res.json();
-        setError(data.error || "Failed to save settings");
+        setError(data.error || t("failedToSave"));
       }
     } catch (err) {
       console.error("Failed to save settings:", err);
-      setError("Failed to save settings");
+      setError(t("failedToSave"));
     } finally {
       setSaving(false);
     }
@@ -128,7 +131,7 @@ export default function SettingsPage() {
     if (!file) return;
 
     if (file.size > 500 * 1024) {
-      setError("Logo file must be under 500KB");
+      setError(t("logoTooLarge"));
       return;
     }
 
@@ -142,8 +145,8 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Settings" description="Manage your business profile" />
-        <div className="text-muted-foreground">Loading...</div>
+        <PageHeader title={t("title")} description={t("description")} />
+        <div className="text-muted-foreground">{tc("loading")}</div>
       </div>
     );
   }
@@ -151,24 +154,24 @@ export default function SettingsPage() {
   if (!profile) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Settings" description="Manage your business profile" />
-        <div className="text-muted-foreground">Failed to load settings.</div>
+        <PageHeader title={t("title")} description={t("description")} />
+        <div className="text-muted-foreground">{t("failedToLoad")}</div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Settings" description="Manage your business profile" />
+      <PageHeader title={t("title")} description={t("description")} />
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Company Info</CardTitle>
+            <CardTitle>{t("companyInfo")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Company Name</Label>
+              <Label htmlFor="name">{t("companyName")}</Label>
               <Input
                 id="name"
                 value={profile.name}
@@ -177,7 +180,7 @@ export default function SettingsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="address">Address</Label>
+              <Label htmlFor="address">{tc("address")}</Label>
               <Textarea
                 id="address"
                 value={profile.address}
@@ -186,36 +189,36 @@ export default function SettingsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="country">Country</Label>
+              <Label htmlFor="country">{tc("country")}</Label>
               <Select
                 id="country"
                 value={profile.country}
                 onChange={(e) => updateField("country", e.target.value)}
               >
-                <option value="DE">Germany (DE)</option>
-                <option value="AT">Austria (AT)</option>
-                <option value="CH">Switzerland (CH)</option>
-                <option value="NL">Netherlands (NL)</option>
-                <option value="FR">France (FR)</option>
-                <option value="BE">Belgium (BE)</option>
-                <option value="IT">Italy (IT)</option>
-                <option value="ES">Spain (ES)</option>
-                <option value="PL">Poland (PL)</option>
-                <option value="CZ">Czech Republic (CZ)</option>
-                <option value="DK">Denmark (DK)</option>
-                <option value="SE">Sweden (SE)</option>
-                <option value="FI">Finland (FI)</option>
-                <option value="PT">Portugal (PT)</option>
-                <option value="IE">Ireland (IE)</option>
-                <option value="LU">Luxembourg (LU)</option>
-                <option value="GR">Greece (GR)</option>
-                <option value="GB">United Kingdom (GB)</option>
-                <option value="US">United States (US)</option>
-                <option value="NO">Norway (NO)</option>
+                <option value="DE">{t("countries.DE")}</option>
+                <option value="AT">{t("countries.AT")}</option>
+                <option value="CH">{t("countries.CH")}</option>
+                <option value="NL">{t("countries.NL")}</option>
+                <option value="FR">{t("countries.FR")}</option>
+                <option value="BE">{t("countries.BE")}</option>
+                <option value="IT">{t("countries.IT")}</option>
+                <option value="ES">{t("countries.ES")}</option>
+                <option value="PL">{t("countries.PL")}</option>
+                <option value="CZ">{t("countries.CZ")}</option>
+                <option value="DK">{t("countries.DK")}</option>
+                <option value="SE">{t("countries.SE")}</option>
+                <option value="FI">{t("countries.FI")}</option>
+                <option value="PT">{t("countries.PT")}</option>
+                <option value="IE">{t("countries.IE")}</option>
+                <option value="LU">{t("countries.LU")}</option>
+                <option value="GR">{t("countries.GR")}</option>
+                <option value="GB">{t("countries.GB")}</option>
+                <option value="US">{t("countries.US")}</option>
+                <option value="NO">{t("countries.NO")}</option>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="vatId">VAT ID</Label>
+              <Label htmlFor="vatId">{t("vatId")}</Label>
               <Input
                 id="vatId"
                 value={profile.vatId || ""}
@@ -223,7 +226,7 @@ export default function SettingsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{tc("email")}</Label>
               <Input
                 id="email"
                 type="email"
@@ -232,7 +235,7 @@ export default function SettingsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
+              <Label htmlFor="phone">{tc("phone")}</Label>
               <Input
                 id="phone"
                 value={profile.phone || ""}
@@ -244,11 +247,11 @@ export default function SettingsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Branding</CardTitle>
+            <CardTitle>{t("branding")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>Company Logo</Label>
+              <Label>{t("companyLogo")}</Label>
               <div className="flex items-center gap-4">
                 {profile.logoUrl ? (
                   <div className="relative">
@@ -288,17 +291,17 @@ export default function SettingsPage() {
                     size="sm"
                     onClick={() => fileInputRef.current?.click()}
                   >
-                    {profile.logoUrl ? "Change Logo" : "Upload Logo"}
+                    {profile.logoUrl ? t("changeLogo") : t("uploadLogo")}
                   </Button>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    PNG, JPG, or SVG. Max 500KB.
+                    {t("logoHint")}
                   </p>
                 </div>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="accentColor">Accent Color</Label>
+              <Label htmlFor="accentColor">{t("accentColor")}</Label>
               <div className="flex items-center gap-3">
                 <input
                   type="color"
@@ -319,7 +322,7 @@ export default function SettingsPage() {
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                Used for invoice header bar, headings, and accents.
+                {t("accentColorHint")}
               </p>
             </div>
           </CardContent>
@@ -327,11 +330,11 @@ export default function SettingsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Bank Details</CardTitle>
+            <CardTitle>{t("bankDetails")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="bankName">Bank Name</Label>
+              <Label htmlFor="bankName">{t("bankName")}</Label>
               <Input
                 id="bankName"
                 value={profile.bankName || ""}
@@ -339,7 +342,7 @@ export default function SettingsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="bankIban">Bank IBAN</Label>
+              <Label htmlFor="bankIban">{t("bankIban")}</Label>
               <Input
                 id="bankIban"
                 value={profile.bankIban || ""}
@@ -347,7 +350,7 @@ export default function SettingsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="bankBic">Bank BIC</Label>
+              <Label htmlFor="bankBic">{t("bankBic")}</Label>
               <Input
                 id="bankBic"
                 value={profile.bankBic || ""}
@@ -359,11 +362,11 @@ export default function SettingsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Invoice Defaults</CardTitle>
+            <CardTitle>{t("invoiceDefaults")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="defaultCurrency">Default Currency</Label>
+              <Label htmlFor="defaultCurrency">{t("defaultCurrency")}</Label>
               <Select
                 id="defaultCurrency"
                 value={profile.defaultCurrency}
@@ -375,7 +378,7 @@ export default function SettingsPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="invoicePrefix">Invoice Prefix</Label>
+              <Label htmlFor="invoicePrefix">{t("invoicePrefix")}</Label>
               <Input
                 id="invoicePrefix"
                 value={profile.invoicePrefix}
@@ -383,7 +386,7 @@ export default function SettingsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="defaultPaymentTermDays">Default Payment Term Days</Label>
+              <Label htmlFor="defaultPaymentTermDays">{t("defaultPaymentTermDays")}</Label>
               <Input
                 id="defaultPaymentTermDays"
                 type="number"
@@ -407,18 +410,18 @@ export default function SettingsPage() {
                 className="h-4 w-4 rounded border-gray-300"
               />
               <Label htmlFor="smallBusinessExemption">
-                Small Business Exemption (Kleinunternehmerregelung)
+                {t("smallBusinessExemption")}
               </Label>
             </div>
 
             {profile.smallBusinessExemption && (
               <div className="space-y-2">
-                <Label htmlFor="exemptionNote">Exemption Note</Label>
+                <Label htmlFor="exemptionNote">{t("exemptionNote")}</Label>
                 <Textarea
                   id="exemptionNote"
                   value={profile.exemptionNote || ""}
                   onChange={(e) => updateField("exemptionNote", e.target.value)}
-                  placeholder="e.g. Gemäß § 19 UStG wird keine Umsatzsteuer berechnet."
+                  placeholder={t("exemptionNotePlaceholder")}
                 />
               </div>
             )}
@@ -429,16 +432,16 @@ export default function SettingsPage() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <Mail className="h-5 w-5 text-muted-foreground" />
-              <CardTitle>Email (SMTP)</CardTitle>
+              <CardTitle>{t("emailSmtp")}</CardTitle>
             </div>
             <p className="text-sm text-muted-foreground">
-              Configure SMTP to send invoices and payment reminders by email.
+              {t("emailSmtpDescription")}
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="smtpHost">SMTP Host</Label>
+                <Label htmlFor="smtpHost">{t("smtpHost")}</Label>
                 <Input
                   id="smtpHost"
                   value={profile.smtpHost || ""}
@@ -447,7 +450,7 @@ export default function SettingsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="smtpPort">SMTP Port</Label>
+                <Label htmlFor="smtpPort">{t("smtpPort")}</Label>
                 <Input
                   id="smtpPort"
                   type="number"
@@ -458,7 +461,7 @@ export default function SettingsPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="smtpUser">Username</Label>
+                <Label htmlFor="smtpUser">{t("username")}</Label>
                 <Input
                   id="smtpUser"
                   value={profile.smtpUser || ""}
@@ -467,24 +470,24 @@ export default function SettingsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="smtpPass">Password</Label>
+                <Label htmlFor="smtpPass">{t("smtpPassword")}</Label>
                 <Input
                   id="smtpPass"
                   type="password"
                   value={profile.smtpPass || ""}
                   onChange={(e) => updateField("smtpPass", e.target.value)}
-                  placeholder="App password or SMTP password"
+                  placeholder={t("smtpPasswordPlaceholder")}
                 />
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="smtpFrom">From Address</Label>
+              <Label htmlFor="smtpFrom">{t("fromAddress")}</Label>
               <Input
                 id="smtpFrom"
                 type="email"
                 value={profile.smtpFrom || ""}
                 onChange={(e) => updateField("smtpFrom", e.target.value)}
-                placeholder="invoices@yourdomain.com (defaults to business email)"
+                placeholder={t("fromAddressPlaceholder")}
               />
             </div>
             <div className="flex items-center space-x-2">
@@ -496,7 +499,7 @@ export default function SettingsPage() {
                 className="h-4 w-4 rounded border-gray-300"
               />
               <Label htmlFor="smtpSecure">
-                Use SSL/TLS (port 465). Leave unchecked for STARTTLS (port 587).
+                {t("sslTls")}
               </Label>
             </div>
           </CardContent>
@@ -504,7 +507,7 @@ export default function SettingsPage() {
 
         {success && (
           <div className="rounded-md bg-green-50 border border-green-200 p-4 text-green-800 text-sm">
-            Settings saved successfully.
+            {t("savedSuccessfully")}
           </div>
         )}
 
@@ -515,7 +518,7 @@ export default function SettingsPage() {
         )}
 
         <Button type="submit" disabled={saving}>
-          {saving ? "Saving..." : "Save Settings"}
+          {saving ? tc("saving") : t("saveSettings")}
         </Button>
       </form>
     </div>

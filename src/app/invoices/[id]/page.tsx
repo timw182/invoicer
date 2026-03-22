@@ -9,16 +9,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
 import { Bell } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface InvoiceDetailPageProps {
   params: Promise<{ id: string }>;
 }
-
-const reminderTypeLabels: Record<string, string> = {
-  upcoming: "Due soon reminder",
-  overdue: "Overdue notice",
-  overdue_followup: "Overdue follow-up",
-};
 
 export default async function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
   const { id } = await params;
@@ -39,6 +34,14 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
   if (!invoice) {
     notFound();
   }
+
+  const t = useTranslations("invoices");
+
+  const reminderTypeLabels: Record<string, string> = {
+    upcoming: t("reminder.upcoming"),
+    overdue: t("reminder.overdue"),
+    overdue_followup: t("reminder.overdueFollowup"),
+  };
 
   const serializedInvoice = JSON.parse(JSON.stringify(invoice));
 
@@ -63,7 +66,7 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
       {/* Recurring source */}
       {invoice.recurringInvoice && (
         <div className="print-hide rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800 flex items-center gap-2">
-          Auto-generated from recurring template:{" "}
+          {t("recurringSource")}{" "}
           <Link href={`/recurring/${invoice.recurringInvoice.id}`} className="font-medium underline">
             {invoice.recurringInvoice.name}
           </Link>
@@ -76,7 +79,7 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
               <Bell className="h-4 w-4 text-muted-foreground" />
-              <CardTitle className="text-sm font-semibold">Reminder History</CardTitle>
+              <CardTitle className="text-sm font-semibold">{t("reminder.history")}</CardTitle>
             </div>
           </CardHeader>
           <CardContent>

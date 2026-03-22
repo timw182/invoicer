@@ -10,6 +10,7 @@ import { Select } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Plus, Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface Category {
   id: string;
@@ -20,6 +21,7 @@ interface Category {
 }
 
 export default function CategoriesPage() {
+  const t = useTranslations("categories");
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [newName, setNewName] = useState("");
@@ -55,7 +57,7 @@ export default function CategoriesPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Delete this category?")) return;
+    if (!confirm(t("deleteConfirm"))) return;
     try {
       const res = await fetch(`/api/categories/${id}`, { method: "DELETE" });
       if (res.ok) fetchCategories();
@@ -70,7 +72,7 @@ export default function CategoriesPage() {
   const expenseCategories = categories.filter((c) => c.type === "expense");
 
   function CategoryList({ items }: { items: Category[] }) {
-    if (items.length === 0) return <p className="text-sm text-muted-foreground py-4">No categories yet.</p>;
+    if (items.length === 0) return <p className="text-sm text-muted-foreground py-4">{t("noCategories")}</p>;
     return (
       <div className="space-y-2">
         {items.map((cat) => (
@@ -80,7 +82,7 @@ export default function CategoriesPage() {
               <span className="text-sm font-medium">{cat.name}</span>
               {cat._count && (
                 <Badge variant="secondary" className="text-xs">
-                  {cat._count.transactions} txns
+                  {t("txns", { count: cat._count.transactions })}
                 </Badge>
               )}
             </div>
@@ -95,21 +97,21 @@ export default function CategoriesPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Categories" description="Manage income and expense categories" />
+      <PageHeader title={t("title")} description={t("description")} />
 
       <Card>
-        <CardHeader><CardTitle>Add Category</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t("addCategory")}</CardTitle></CardHeader>
         <CardContent>
           <div className="flex items-end gap-3">
             <div className="flex-1 space-y-1">
               <Label>Name</Label>
-              <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Category name" />
+              <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder={t("categoryName")} />
             </div>
             <div className="w-36 space-y-1">
               <Label>Type</Label>
               <Select value={newType} onChange={(e) => setNewType(e.target.value)}>
-                <option value="expense">Expense</option>
-                <option value="income">Income</option>
+                <option value="expense">{t("expenseTab")}</option>
+                <option value="income">{t("incomeTab")}</option>
               </Select>
             </div>
             <div className="w-20 space-y-1">
@@ -125,8 +127,8 @@ export default function CategoriesPage() {
 
       <Tabs defaultValue="expense">
         <TabsList>
-          <TabsTrigger value="expense">Expense ({expenseCategories.length})</TabsTrigger>
-          <TabsTrigger value="income">Income ({incomeCategories.length})</TabsTrigger>
+          <TabsTrigger value="expense">{t("expenseTab")} ({expenseCategories.length})</TabsTrigger>
+          <TabsTrigger value="income">{t("incomeTab")} ({incomeCategories.length})</TabsTrigger>
         </TabsList>
         <TabsContent value="expense">
           <Card><CardContent className="pt-6"><CategoryList items={expenseCategories} /></CardContent></Card>

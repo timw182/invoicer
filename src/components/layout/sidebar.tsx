@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Users,
@@ -17,59 +17,64 @@ import {
   Settings,
   Shield,
   LogOut,
+  Globe,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
+import { useTranslations, useLocale } from "next-intl";
+import { setLocale } from "@/lib/locale";
+import { useTransition } from "react";
+import type { Locale } from "@/i18n/config";
 
 interface NavItem {
   href: string;
-  label: string;
+  labelKey: string;
   icon: React.ComponentType<{ className?: string }>;
 }
 
 interface NavSection {
-  title?: string;
+  titleKey?: string;
   items: NavItem[];
 }
 
 const baseNavSections: NavSection[] = [
   {
     items: [
-      { href: "/", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/", labelKey: "dashboard", icon: LayoutDashboard },
     ],
   },
   {
-    title: "Invoicing",
+    titleKey: "invoicing",
     items: [
-      { href: "/clients", label: "Clients", icon: Users },
-      { href: "/services", label: "Services", icon: Briefcase },
-      { href: "/invoices", label: "Invoices", icon: FileText },
-      { href: "/recurring", label: "Recurring", icon: Repeat },
+      { href: "/clients", labelKey: "clients", icon: Users },
+      { href: "/services", labelKey: "services", icon: Briefcase },
+      { href: "/invoices", labelKey: "invoices", icon: FileText },
+      { href: "/recurring", labelKey: "recurring", icon: Repeat },
     ],
   },
   {
     items: [
-      { href: "/settings", label: "Settings", icon: Settings },
+      { href: "/settings", labelKey: "settings", icon: Settings },
     ],
   },
 ];
 
 const accountingSection: NavSection = {
-  title: "Accounting",
+  titleKey: "accounting",
   items: [
-    { href: "/transactions", label: "Transactions", icon: ArrowLeftRight },
-    { href: "/expenses", label: "Expenses", icon: Receipt },
-    { href: "/accounts", label: "Accounts", icon: Landmark },
-    { href: "/reports", label: "Reports", icon: BarChart3 },
-    { href: "/categories", label: "Categories", icon: Tags },
-    { href: "/templates", label: "Templates", icon: FileStack },
+    { href: "/transactions", labelKey: "transactions", icon: ArrowLeftRight },
+    { href: "/expenses", labelKey: "expenses", icon: Receipt },
+    { href: "/accounts", labelKey: "accounts", icon: Landmark },
+    { href: "/reports", labelKey: "reports", icon: BarChart3 },
+    { href: "/categories", labelKey: "categories", icon: Tags },
+    { href: "/templates", labelKey: "templates", icon: FileStack },
   ],
 };
 
 const adminSection: NavSection = {
-  title: "Admin",
+  titleKey: "admin",
   items: [
-    { href: "/users", label: "Users", icon: Shield },
+    { href: "/users", labelKey: "users", icon: Shield },
   ],
 };
 
@@ -79,12 +84,23 @@ interface SidebarProps {
 
 export function Sidebar({ onNavigate }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, logout } = useAuth();
+  const t = useTranslations("nav");
+  const locale = useLocale();
+  const [isPending, startTransition] = useTransition();
 
   const navSections = [...baseNavSections];
   if (user?.role === "admin") {
-    // Insert Accounting and Admin before Settings
     navSections.splice(2, 0, accountingSection, adminSection);
+  }
+
+  function toggleLocale() {
+    const next: Locale = locale === "en" ? "fr" : "en";
+    startTransition(async () => {
+      await setLocale(next);
+      router.refresh();
+    });
   }
 
   return (
@@ -98,9 +114,9 @@ export function Sidebar({ onNavigate }: SidebarProps) {
       <nav className="flex-1 overflow-y-auto px-3 py-4">
         {navSections.map((section, sIdx) => (
           <div key={sIdx} className={sIdx > 0 ? "mt-4" : ""}>
-            {section.title && (
+            {section.titleKey && (
               <p className="px-3 mb-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
-                {section.title}
+                {t(section.titleKey)}
               </p>
             )}
             <div className="space-y-0.5">
@@ -123,7 +139,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
                     )}
                   >
                     <Icon className="h-4 w-4" />
-                    {item.label}
+                    {t(item.labelKey)}
                   </Link>
                 );
               })}
@@ -132,6 +148,14 @@ export function Sidebar({ onNavigate }: SidebarProps) {
         ))}
       </nav>
       <div className="border-t px-4 py-3">
+        <button
+          onClick={toggleLocale}
+          disabled={isPending}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors mb-2"
+        >
+          <Globe className="h-4 w-4" />
+          {locale === "en" ? "Français" : "English"}
+        </button>
         {user && (
           <div className="flex items-center justify-between">
             <div className="min-w-0">
@@ -141,7 +165,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
             <button
               onClick={logout}
               className="rounded-lg p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
-              title="Sign out"
+              title={t("signOut")}
             >
               <LogOut className="h-4 w-4" />
             </button>

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { invoiceStatusSchema } from "@/lib/validators";
-import { requireAuth, AuthError } from "@/lib/auth";
+import { requireAuth, requireAdmin, AuthError } from "@/lib/auth";
 import { sendInvoiceEmail } from "@/lib/email";
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
@@ -40,6 +40,11 @@ export async function PATCH(
 
     const { status: newStatus } = parsed.data;
     const currentStatus = invoice.status;
+
+    // Only admins can mark invoices as paid
+    if (newStatus === "paid") {
+      await requireAdmin();
+    }
 
     const allowed = VALID_TRANSITIONS[currentStatus] ?? [];
     if (!allowed.includes(newStatus)) {

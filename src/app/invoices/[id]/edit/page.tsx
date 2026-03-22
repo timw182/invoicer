@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { PageHeader } from "@/components/layout/page-header";
 import { InvoiceForm } from "@/components/invoices/invoice-form";
+import { useTranslations } from "next-intl";
 
 interface EditInvoicePageProps {
   params: Promise<{ id: string }>;
@@ -25,6 +26,8 @@ export default async function EditInvoicePage({ params }: EditInvoicePageProps) 
     redirect(`/invoices/${id}`);
   }
 
+  const t = useTranslations("invoices");
+
   const [clients, services, businessProfile] = await Promise.all([
     prisma.client.findMany({ orderBy: { name: "asc" } }),
     prisma.service.findMany({ where: { active: true }, orderBy: { name: "asc" } }),
@@ -34,9 +37,9 @@ export default async function EditInvoicePage({ params }: EditInvoicePageProps) 
   if (!businessProfile) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Edit Invoice" />
+        <PageHeader title={t("editInvoice")} />
         <p className="text-muted-foreground">
-          Please set up your business profile before editing invoices.
+          {t("setupProfileEdit")}
         </p>
       </div>
     );
@@ -44,7 +47,7 @@ export default async function EditInvoicePage({ params }: EditInvoicePageProps) 
 
   return (
     <div className="space-y-6">
-      <PageHeader title={`Edit Invoice ${invoice.invoiceNumber}`} />
+      <PageHeader title={t("editInvoiceNumber", { number: invoice.invoiceNumber })} />
       <InvoiceForm
         clients={JSON.parse(JSON.stringify(clients))}
         services={JSON.parse(JSON.stringify(services))}

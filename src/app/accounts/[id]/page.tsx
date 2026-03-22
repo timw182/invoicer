@@ -6,12 +6,14 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/currency";
 import { formatDate } from "@/lib/utils";
+import { getTranslations } from "next-intl/server";
 
 interface AccountDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
 export default async function AccountDetailPage({ params }: AccountDetailPageProps) {
+  const t = await getTranslations("accounts");
   const { id } = await params;
 
   const account = await prisma.bankAccount.findUnique({
@@ -43,17 +45,17 @@ export default async function AccountDetailPage({ params }: AccountDetailPagePro
       />
 
       <Card>
-        <CardHeader><CardTitle>Transaction History</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t("transactionHistory")}</CardTitle></CardHeader>
         <CardContent>
           {account.transactions.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-4">No transactions yet.</p>
+            <p className="text-sm text-muted-foreground py-4">{t("noTransactions")}</p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead className="text-xs font-semibold uppercase tracking-wider">Date</TableHead>
                   <TableHead className="text-xs font-semibold uppercase tracking-wider">Description</TableHead>
-                  <TableHead className="text-xs font-semibold uppercase tracking-wider">Category</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase tracking-wider">{t("category")}</TableHead>
                   <TableHead className="text-xs font-semibold uppercase tracking-wider text-right">Amount</TableHead>
                 </TableRow>
               </TableHeader>

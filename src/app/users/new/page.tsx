@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
 
 export default function NewUserPage() {
+  const t = useTranslations("users");
+  const tc = useTranslations("common");
   const router = useRouter();
   const { user } = useAuth();
   const [form, setForm] = useState({
@@ -45,7 +48,7 @@ export default function NewUserPage() {
 
       router.push("/users");
     } catch {
-      setError("Something went wrong");
+      setError(tc("somethingWentWrong"));
     } finally {
       setSaving(false);
     }
@@ -53,7 +56,7 @@ export default function NewUserPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Add User" description="Create a new user account" />
+      <PageHeader title={t("addUser")} description={t("addUserDescription")} />
 
       <Card className="max-w-lg">
         <CardContent className="p-6">
@@ -65,7 +68,7 @@ export default function NewUserPage() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">{tc("name")}</Label>
               <Input
                 id="name"
                 value={form.name}
@@ -75,7 +78,7 @@ export default function NewUserPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{tc("email")}</Label>
               <Input
                 id="email"
                 type="email"
@@ -86,7 +89,7 @@ export default function NewUserPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{tc("password")}</Label>
               <Input
                 id="password"
                 type="password"
@@ -98,24 +101,24 @@ export default function NewUserPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="role">Role</Label>
+              <Label htmlFor="role">{tc("role")}</Label>
               <select
                 id="role"
                 value={form.role}
                 onChange={(e) => setForm({ ...form, role: e.target.value })}
                 className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               >
-                <option value="user">User</option>
-                <option value="admin">Admin</option>
+                <option value="user">{t("user")}</option>
+                <option value="admin">{t("admin")}</option>
               </select>
             </div>
 
             <div className="flex gap-3 pt-2">
               <Button type="submit" disabled={saving}>
-                {saving ? "Creating..." : "Create User"}
+                {saving ? tc("creating") : t("createUser")}
               </Button>
               <Button type="button" variant="outline" onClick={() => router.push("/users")}>
-                Cancel
+                {tc("cancel")}
               </Button>
             </div>
           </form>

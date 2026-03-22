@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { InvoiceTable } from "@/components/invoices/invoice-table";
 import { Plus, RefreshCw } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface InvoiceWithClient {
   id: string;
@@ -23,16 +24,19 @@ interface InvoiceWithClient {
 
 const POLL_INTERVAL = 15000;
 
-const tabs = [
-  { value: "all", label: "All" },
-  { value: "draft", label: "Draft" },
-  { value: "sent", label: "Sent" },
-  { value: "overdue", label: "Overdue" },
-  { value: "paid", label: "Paid" },
-  { value: "cancelled", label: "Cancelled" },
-];
-
 export default function InvoicesPage() {
+  const t = useTranslations("invoices");
+  const tc = useTranslations("common");
+
+  const tabs = [
+    { value: "all", label: t("tabs.all") },
+    { value: "draft", label: t("tabs.draft") },
+    { value: "sent", label: t("tabs.sent") },
+    { value: "overdue", label: t("tabs.overdue") },
+    { value: "paid", label: t("tabs.paid") },
+    { value: "cancelled", label: t("tabs.cancelled") },
+  ];
+
   const [invoices, setInvoices] = useState<InvoiceWithClient[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -77,7 +81,7 @@ export default function InvoicesPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Invoices" />
+        <PageHeader title={t("title")} />
         <Card>
           <CardContent className="p-5">
             <div className="h-64 animate-pulse rounded bg-muted" />
@@ -90,7 +94,7 @@ export default function InvoicesPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Invoices"
+        title={t("title")}
         action={
           <div className="flex items-center gap-2">
             <Button
@@ -100,12 +104,12 @@ export default function InvoicesPage() {
               disabled={refreshing}
             >
               <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${refreshing ? "animate-spin" : ""}`} />
-              Refresh
+              {tc("refresh")}
             </Button>
             <Link href="/invoices/new">
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
-                New Invoice
+                {t("newInvoice")}
               </Button>
             </Link>
           </div>

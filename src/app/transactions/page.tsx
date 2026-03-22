@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { formatCurrency } from "@/lib/currency";
 import { formatDate } from "@/lib/utils";
 import { Plus, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface Transaction {
   id: string;
@@ -26,6 +27,7 @@ interface Transaction {
 }
 
 export default function TransactionsPage() {
+  const t = useTranslations("transactions");
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState("");
@@ -52,8 +54,8 @@ export default function TransactionsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Transactions"
-        description="All income and expenses"
+        title={t("title")}
+        description={t("description")}
         action={
           <Link href="/expenses/new">
             <Button><Plus className="h-4 w-4 mr-2" /> Add Expense</Button>
@@ -64,19 +66,19 @@ export default function TransactionsPage() {
       <div className="grid grid-cols-3 gap-4">
         <Card>
           <CardContent className="pt-6">
-            <p className="text-xs font-medium text-muted-foreground uppercase">Income</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase">{t("income")}</p>
             <p className="text-2xl font-bold text-emerald-600 mt-1">{formatCurrency(totalIncome)}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-xs font-medium text-muted-foreground uppercase">Expenses</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase">{t("expense")}</p>
             <p className="text-2xl font-bold text-red-600 mt-1">{formatCurrency(totalExpenses)}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-xs font-medium text-muted-foreground uppercase">Net</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase">{t("net")}</p>
             <p className={`text-2xl font-bold mt-1 ${totalIncome - totalExpenses >= 0 ? "text-emerald-600" : "text-red-600"}`}>
               {formatCurrency(totalIncome - totalExpenses)}
             </p>
@@ -92,8 +94,8 @@ export default function TransactionsPage() {
               <span className="text-xs font-medium text-muted-foreground">Type</span>
               <Select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
                 <option value="">All</option>
-                <option value="income">Income</option>
-                <option value="expense">Expense</option>
+                <option value="income">{t("income")}</option>
+                <option value="expense">{t("expense")}</option>
               </Select>
             </div>
             <div className="w-40 space-y-1">
@@ -118,7 +120,7 @@ export default function TransactionsPage() {
           {loading ? (
             <div className="p-5"><div className="h-32 animate-pulse rounded bg-muted" /></div>
           ) : transactions.length === 0 ? (
-            <div className="py-16 text-center text-sm text-muted-foreground">No transactions found.</div>
+            <div className="py-16 text-center text-sm text-muted-foreground">{t("noTransactions")}</div>
           ) : (
             <Table>
               <TableHeader>
@@ -126,8 +128,8 @@ export default function TransactionsPage() {
                   <TableHead className="text-xs font-semibold uppercase tracking-wider w-8" />
                   <TableHead className="text-xs font-semibold uppercase tracking-wider">Date</TableHead>
                   <TableHead className="text-xs font-semibold uppercase tracking-wider">Description</TableHead>
-                  <TableHead className="text-xs font-semibold uppercase tracking-wider">Category</TableHead>
-                  <TableHead className="text-xs font-semibold uppercase tracking-wider">Account</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase tracking-wider">{t("category")}</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase tracking-wider">{t("account")}</TableHead>
                   <TableHead className="text-xs font-semibold uppercase tracking-wider text-right">Amount</TableHead>
                 </TableRow>
               </TableHeader>

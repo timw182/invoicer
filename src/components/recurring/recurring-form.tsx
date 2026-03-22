@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -73,6 +74,10 @@ const emptyLineItem: LineItemData = {
 export function RecurringForm({ clients, services, initialData }: RecurringFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const t = useTranslations("recurring");
+  const tc = useTranslations("common");
+  const ti = useTranslations("invoices");
+  const ts = useTranslations("services");
 
   const [name, setName] = useState(initialData?.name || "");
   const [clientId, setClientId] = useState(initialData?.clientId || "");
@@ -124,11 +129,11 @@ export function RecurringForm({ clients, services, initialData }: RecurringFormP
 
   async function handleSubmit() {
     if (!name || !clientId) {
-      alert("Please fill in the name and select a client.");
+      alert(t("fillNameClient"));
       return;
     }
     if (lineItems.length === 0) {
-      alert("Please add at least one line item.");
+      alert(t("addLineItemAlert"));
       return;
     }
 
@@ -182,48 +187,48 @@ export function RecurringForm({ clients, services, initialData }: RecurringFormP
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Recurring Details</CardTitle>
+          <CardTitle>{t("recurringDetails")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Template Name</Label>
+            <Label htmlFor="name">{t("templateName")}</Label>
             <Input
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Monthly retainer - Acme Corp"
+              placeholder={t("templateNamePlaceholder")}
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="client">Client</Label>
+              <Label htmlFor="client">{t("client")}</Label>
               <Select id="client" value={clientId} onChange={(e) => setClientId(e.target.value)}>
-                <option value="">Select a client...</option>
+                <option value="">{tc("select")}</option>
                 {clients.map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="frequency">Frequency</Label>
+              <Label htmlFor="frequency">{t("frequency")}</Label>
               <Select id="frequency" value={frequency} onChange={(e) => setFrequency(e.target.value)}>
-                <option value="monthly">Monthly</option>
-                <option value="quarterly">Quarterly</option>
-                <option value="yearly">Yearly</option>
+                <option value="monthly">{t("frequencies.monthly")}</option>
+                <option value="quarterly">{t("frequencies.quarterly")}</option>
+                <option value="yearly">{t("frequencies.yearly")}</option>
               </Select>
             </div>
           </div>
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="startDate">Start Date</Label>
+              <Label htmlFor="startDate">{t("startDate")}</Label>
               <Input id="startDate" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="endDate">End Date (optional)</Label>
+              <Label htmlFor="endDate">{t("endDateOptional")}</Label>
               <Input id="endDate" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="paymentTermDays">Payment Terms (days)</Label>
+              <Label htmlFor="paymentTermDays">{t("paymentTermsDays")}</Label>
               <Input
                 id="paymentTermDays"
                 type="number"
@@ -235,7 +240,7 @@ export function RecurringForm({ clients, services, initialData }: RecurringFormP
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="currency">Currency</Label>
+              <Label htmlFor="currency">{t("currency")}</Label>
               <Select id="currency" value={currency} onChange={(e) => setCurrency(e.target.value)}>
                 {SUPPORTED_CURRENCIES.map((c) => (
                   <option key={c.code} value={c.code}>{c.code} — {c.name}</option>
@@ -250,7 +255,7 @@ export function RecurringForm({ clients, services, initialData }: RecurringFormP
                   onChange={(e) => setAutoSend(e.target.checked)}
                   className="h-4 w-4 rounded border-gray-300"
                 />
-                <span className="text-sm font-medium">Auto-send generated invoices</span>
+                <span className="text-sm font-medium">{t("autoSendGenerated")}</span>
               </label>
             </div>
           </div>
@@ -259,18 +264,18 @@ export function RecurringForm({ clients, services, initialData }: RecurringFormP
 
       <Card>
         <CardHeader>
-          <CardTitle>Line Items</CardTitle>
+          <CardTitle>{t("lineItems")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="mb-3 grid grid-cols-[2fr_3fr_1fr_1fr_1fr_1fr_1fr_2fr_auto] gap-2 text-xs font-medium text-muted-foreground">
-            <div>Service</div>
-            <div>Description</div>
-            <div>Qty</div>
-            <div>Unit</div>
-            <div>Price</div>
-            <div>Disc %</div>
-            <div>Tax %</div>
-            <div>Amounts</div>
+            <div>{ti("form.service")}</div>
+            <div>{tc("description")}</div>
+            <div>{ti("form.qty")}</div>
+            <div>{ts("unit")}</div>
+            <div>{ti("form.price")}</div>
+            <div>{ti("form.discPercent")}</div>
+            <div>{ti("form.taxPercent")}</div>
+            <div>{ti("form.amounts")}</div>
             <div className="w-8" />
           </div>
           {lineItems.map((item, index) => (
@@ -285,18 +290,18 @@ export function RecurringForm({ clients, services, initialData }: RecurringFormP
             />
           ))}
           <Button type="button" variant="outline" onClick={addLineItem}>
-            + Add Line Item
+            {ti("form.addLineItem")}
           </Button>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Summary</CardTitle>
+          <CardTitle>{t("summary")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex justify-between text-sm">
-            <span>Estimated Net per Invoice</span>
+            <span>{t("estimatedNetPerInvoice")}</span>
             <span className="font-bold">{formatCurrency(totals.subtotal, currency)}</span>
           </div>
         </CardContent>
@@ -304,22 +309,22 @@ export function RecurringForm({ clients, services, initialData }: RecurringFormP
 
       <Card>
         <CardHeader>
-          <CardTitle>Notes</CardTitle>
+          <CardTitle>{tc("notes")}</CardTitle>
         </CardHeader>
         <CardContent>
           <Textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Notes to include on generated invoices..."
+            placeholder={t("notesPlaceholder")}
             rows={3}
           />
         </CardContent>
       </Card>
 
       <div className="flex justify-end gap-3">
-        <Button variant="outline" onClick={() => router.push("/recurring")}>Cancel</Button>
+        <Button variant="outline" onClick={() => router.push("/recurring")}>{tc("cancel")}</Button>
         <Button disabled={loading} onClick={handleSubmit}>
-          {loading ? "Saving..." : initialData ? "Update Template" : "Create Template"}
+          {loading ? tc("saving") : initialData ? t("updateTemplate") : t("createTemplate")}
         </Button>
       </div>
     </div>

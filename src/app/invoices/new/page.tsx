@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { PageHeader } from "@/components/layout/page-header";
 import { InvoiceForm } from "@/components/invoices/invoice-form";
+import { useTranslations } from "next-intl";
 
 export default async function NewInvoicePage() {
   const [clients, services, businessProfile] = await Promise.all([
@@ -9,12 +10,14 @@ export default async function NewInvoicePage() {
     prisma.businessProfile.findFirst(),
   ]);
 
+  const t = useTranslations("invoices");
+
   if (!businessProfile) {
     return (
       <div className="space-y-6">
-        <PageHeader title="New Invoice" />
+        <PageHeader title={t("newInvoice")} />
         <p className="text-muted-foreground">
-          Please set up your business profile before creating invoices.
+          {t("setupProfile")}
         </p>
       </div>
     );
@@ -22,7 +25,7 @@ export default async function NewInvoicePage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="New Invoice" />
+      <PageHeader title={t("newInvoice")} />
       <InvoiceForm
         clients={JSON.parse(JSON.stringify(clients))}
         services={JSON.parse(JSON.stringify(services))}

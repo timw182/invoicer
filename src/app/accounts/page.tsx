@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/currency";
 import { Plus, Landmark } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface BankAccount {
   id: string;
@@ -22,6 +23,7 @@ interface BankAccount {
 }
 
 export default function AccountsPage() {
+  const t = useTranslations("accounts");
   const [accounts, setAccounts] = useState<BankAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -41,11 +43,11 @@ export default function AccountsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Bank Accounts"
-        description="Track your business accounts"
+        title={t("title")}
+        description={t("description")}
         action={
           <Link href="/accounts/new">
-            <Button><Plus className="h-4 w-4 mr-2" /> Add Account</Button>
+            <Button><Plus className="h-4 w-4 mr-2" /> {t("addAccount")}</Button>
           </Link>
         }
       />
@@ -53,7 +55,7 @@ export default function AccountsPage() {
       {accounts.length > 0 && (
         <Card>
           <CardContent className="pt-6">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total Balance</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("totalBalance")}</p>
             <p className="text-3xl font-bold mt-1">{formatCurrency(totalBalance)}</p>
           </CardContent>
         </Card>
@@ -65,8 +67,8 @@ export default function AccountsPage() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
             <div className="rounded-full bg-muted p-3 mb-3"><Landmark className="h-6 w-6 text-muted-foreground" /></div>
-            <p className="text-sm font-medium text-muted-foreground">No bank accounts yet</p>
-            <p className="text-xs text-muted-foreground mt-1">Add an account to start tracking balances</p>
+            <p className="text-sm font-medium text-muted-foreground">{t("noAccounts")}</p>
+            <p className="text-xs text-muted-foreground mt-1">{t("addToTrack")}</p>
           </CardContent>
         </Card>
       ) : (
@@ -87,7 +89,7 @@ export default function AccountsPage() {
                     <p className={`text-2xl font-bold tabular-nums ${acc.balance >= 0 ? "text-emerald-600" : "text-red-600"}`}>
                       {formatCurrency(acc.balance, acc.currency)}
                     </p>
-                    <p className="text-xs text-muted-foreground mt-1">{acc._count.transactions} transactions</p>
+                    <p className="text-xs text-muted-foreground mt-1">{t("transactions", { count: acc._count.transactions })}</p>
                   </div>
                 </div>
               </CardContent>

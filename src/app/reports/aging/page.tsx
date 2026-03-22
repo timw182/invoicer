@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -55,6 +56,8 @@ const bucketTextColors: Record<string, string> = {
 };
 
 export default function AgingReportPage() {
+  const t = useTranslations("reports");
+  const tc = useTranslations("common");
   const [report, setReport] = useState<AgingReport | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -69,7 +72,7 @@ export default function AgingReportPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Aging Report" description="Outstanding payments by age" />
+        <PageHeader title={t("agingReport.title")} description={t("agingReport.description")} />
         <Card><CardContent className="p-5"><div className="h-48 animate-pulse rounded bg-muted" /></CardContent></Card>
       </div>
     );
@@ -78,27 +81,27 @@ export default function AgingReportPage() {
   if (!report) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Aging Report" description="Outstanding payments by age" />
-        <Card><CardContent className="p-8 text-center text-muted-foreground">Failed to load report.</CardContent></Card>
+        <PageHeader title={t("agingReport.title")} description={t("agingReport.description")} />
+        <Card><CardContent className="p-8 text-center text-muted-foreground">{tc("failedToLoad")}</CardContent></Card>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Aging Report" description="Outstanding payments by age" />
+      <PageHeader title={t("agingReport.title")} description={t("agingReport.description")} />
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-4">
         <Card>
           <CardContent className="pt-6">
-            <p className="text-xs font-medium text-muted-foreground uppercase">Total Outstanding</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase">{t("agingReport.totalOutstanding")}</p>
             <p className="text-2xl font-bold text-blue-600 mt-1">{formatCurrency(report.totalOutstanding)}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-xs font-medium text-muted-foreground uppercase">Unpaid Invoices</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase">{t("agingReport.unpaidInvoices")}</p>
             <p className="text-2xl font-bold mt-1">{report.totalCount}</p>
           </CardContent>
         </Card>
@@ -106,10 +109,10 @@ export default function AgingReportPage() {
 
       {/* Aging Buckets */}
       <Card>
-        <CardHeader><CardTitle className="text-base">Aging Breakdown</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">{t("agingReport.agingBreakdown")}</CardTitle></CardHeader>
         <CardContent>
           {report.totalCount === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">No outstanding invoices.</p>
+            <p className="text-sm text-muted-foreground text-center py-4">{t("agingReport.noOutstanding")}</p>
           ) : (
             <>
               {/* Visual bar */}
@@ -135,7 +138,11 @@ export default function AgingReportPage() {
                     <p className={`text-lg font-bold tabular-nums ${bucketTextColors[s.bucket]}`}>
                       {formatCurrency(s.total)}
                     </p>
-                    <p className="text-xs text-muted-foreground">{s.count} invoice{s.count !== 1 ? "s" : ""}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {s.count !== 1
+                        ? t("agingReport.invoices", { count: s.count })
+                        : `${s.count} invoice`}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -147,15 +154,15 @@ export default function AgingReportPage() {
       {/* By Client */}
       {report.byClient.length > 0 && (
         <Card>
-          <CardHeader><CardTitle className="text-base">Outstanding by Client</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base">{t("agingReport.outstandingByClient")}</CardTitle></CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-xs font-semibold uppercase">Client</TableHead>
-                  <TableHead className="text-xs font-semibold uppercase text-right">Invoices</TableHead>
-                  <TableHead className="text-xs font-semibold uppercase text-right">Total</TableHead>
-                  <TableHead className="text-xs font-semibold uppercase text-right">Oldest</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase">{t("agingReport.client")}</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase text-right">{t("agingReport.invoices")}</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase text-right">{tc("total")}</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase text-right">{t("agingReport.oldest")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -166,7 +173,7 @@ export default function AgingReportPage() {
                     <TableCell className="text-right tabular-nums font-medium">{formatCurrency(c.total)}</TableCell>
                     <TableCell className="text-right">
                       <Badge variant={c.oldest > 30 ? "destructive" : "secondary"} className="text-xs">
-                        {c.oldest > 0 ? `${c.oldest}d overdue` : "Current"}
+                        {c.oldest > 0 ? t("agingReport.dOverdue", { days: c.oldest }) : t("agingReport.currentLabel")}
                       </Badge>
                     </TableCell>
                   </TableRow>
@@ -180,16 +187,16 @@ export default function AgingReportPage() {
       {/* Invoice Details */}
       {report.details.length > 0 && (
         <Card>
-          <CardHeader><CardTitle className="text-base">All Outstanding Invoices</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base">{t("agingReport.allOutstandingInvoices")}</CardTitle></CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-xs font-semibold uppercase">Invoice</TableHead>
-                  <TableHead className="text-xs font-semibold uppercase">Client</TableHead>
-                  <TableHead className="text-xs font-semibold uppercase">Due Date</TableHead>
-                  <TableHead className="text-xs font-semibold uppercase text-right">Days Overdue</TableHead>
-                  <TableHead className="text-xs font-semibold uppercase text-right">Amount</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase">{t("agingReport.invoice")}</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase">{t("agingReport.client")}</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase">{tc("date")}</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase text-right">{t("agingReport.daysOverdue")}</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase text-right">{tc("amount")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -208,7 +215,7 @@ export default function AgingReportPage() {
                           {inv.daysOverdue}d
                         </span>
                       ) : (
-                        <span className="text-sm text-emerald-600">Current</span>
+                        <span className="text-sm text-emerald-600">{t("agingReport.currentLabel")}</span>
                       )}
                     </TableCell>
                     <TableCell className="text-right tabular-nums font-medium">{formatCurrency(inv.total, inv.currency)}</TableCell>

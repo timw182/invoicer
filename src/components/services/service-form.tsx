@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { serviceSchema, type ServiceInput } from "@/lib/validators";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,14 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
 
-const UNIT_OPTIONS = [
-  { value: "hour", label: "Hour" },
-  { value: "piece", label: "Piece" },
-  { value: "kg", label: "Kilogram (kg)" },
-  { value: "project", label: "Project" },
-  { value: "day", label: "Day" },
-  { value: "flat", label: "Flat Rate" },
-];
+const UNIT_KEYS = ["hour", "piece", "kg", "project", "day", "flat"] as const;
 
 interface ServiceFormProps {
   initialData?: ServiceInput & { id: string };
@@ -28,6 +22,8 @@ interface ServiceFormProps {
 export function ServiceForm({ initialData, onSuccess }: ServiceFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const t = useTranslations("services");
+  const tc = useTranslations("common");
 
   const {
     register,
@@ -77,7 +73,7 @@ export function ServiceForm({ initialData, onSuccess }: ServiceFormProps) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-2xl">
       <div className="space-y-2">
-        <Label htmlFor="name">Name</Label>
+        <Label htmlFor="name">{tc("name")}</Label>
         <Input id="name" {...register("name")} />
         {errors.name && (
           <p className="text-sm text-destructive">{errors.name.message}</p>
@@ -85,7 +81,7 @@ export function ServiceForm({ initialData, onSuccess }: ServiceFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="description">Description</Label>
+        <Label htmlFor="description">{tc("description")}</Label>
         <Textarea id="description" {...register("description")} />
         {errors.description && (
           <p className="text-sm text-destructive">
@@ -95,7 +91,7 @@ export function ServiceForm({ initialData, onSuccess }: ServiceFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="unitPrice">Unit Price</Label>
+        <Label htmlFor="unitPrice">{t("unitPrice")}</Label>
         <Input
           id="unitPrice"
           type="number"
@@ -110,11 +106,11 @@ export function ServiceForm({ initialData, onSuccess }: ServiceFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="unit">Unit</Label>
+        <Label htmlFor="unit">{t("unit")}</Label>
         <Select id="unit" {...register("unit")}>
-          {UNIT_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
+          {UNIT_KEYS.map((key) => (
+            <option key={key} value={key}>
+              {t(`units.${key}`)}
             </option>
           ))}
         </Select>
@@ -124,7 +120,7 @@ export function ServiceForm({ initialData, onSuccess }: ServiceFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="taxRate">Tax Rate (%)</Label>
+        <Label htmlFor="taxRate">{t("taxRate")}</Label>
         <Input
           id="taxRate"
           type="number"
@@ -139,17 +135,17 @@ export function ServiceForm({ initialData, onSuccess }: ServiceFormProps) {
       <div className="flex gap-4">
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting
-            ? "Saving..."
+            ? tc("saving")
             : initialData
-              ? "Update Service"
-              : "Create Service"}
+              ? t("updateService")
+              : t("createService")}
         </Button>
         <Button
           type="button"
           variant="outline"
           onClick={() => router.push("/services")}
         >
-          Cancel
+          {tc("cancel")}
         </Button>
       </div>
     </form>

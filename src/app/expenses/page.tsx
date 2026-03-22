@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { formatCurrency } from "@/lib/currency";
 import { formatDate } from "@/lib/utils";
 import { Plus, Receipt } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface Transaction {
   id: string;
@@ -23,6 +24,7 @@ interface Transaction {
 }
 
 export default function ExpensesPage() {
+  const t = useTranslations("expenses");
   const [expenses, setExpenses] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -41,11 +43,11 @@ export default function ExpensesPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Expenses"
+        title={t("title")}
         description={expenses.length > 0 ? `Total: ${formatCurrency(totalExpenses)}` : undefined}
         action={
           <Link href="/expenses/new">
-            <Button><Plus className="h-4 w-4 mr-2" /> Add Expense</Button>
+            <Button><Plus className="h-4 w-4 mr-2" /> {t("addExpense")}</Button>
           </Link>
         }
       />
@@ -57,7 +59,7 @@ export default function ExpensesPage() {
           ) : expenses.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <div className="rounded-full bg-muted p-3 mb-3"><Receipt className="h-6 w-6 text-muted-foreground" /></div>
-              <p className="text-sm font-medium text-muted-foreground">No expenses recorded</p>
+              <p className="text-sm font-medium text-muted-foreground">{t("noExpenses")}</p>
             </div>
           ) : (
             <Table>

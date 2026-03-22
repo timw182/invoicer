@@ -21,12 +21,16 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { formatCurrency } from "@/lib/currency";
 import { formatDate } from "@/lib/utils";
+import { getTranslations } from "next-intl/server";
 
 interface ClientDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
 export default async function ClientDetailPage({ params }: ClientDetailPageProps) {
+  const t = await getTranslations("clients");
+  const tc = await getTranslations("common");
+  const td = await getTranslations("dashboard");
   const { id } = await params;
 
   const client = await prisma.client.findUnique({
@@ -70,10 +74,10 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
     <div className="space-y-6">
       <PageHeader
         title={client.name}
-        description={client.contactPerson ? `Contact: ${client.contactPerson}` : undefined}
+        description={client.contactPerson ? t("contact", { name: client.contactPerson }) : undefined}
         action={
           <Button asChild>
-            <Link href={`/clients/${client.id}/edit`}>Edit Client</Link>
+            <Link href={`/clients/${client.id}/edit`}>{t("editClient")}</Link>
           </Button>
         }
       />
@@ -82,30 +86,30 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total Invoiced</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("totalInvoiced")}</p>
             <p className="text-2xl font-bold mt-1">{formatCurrency(totalInvoiced, currency)}</p>
-            <p className="text-xs text-muted-foreground mt-1">{client.invoices.length} invoice{client.invoices.length !== 1 ? "s" : ""}</p>
+            <p className="text-xs text-muted-foreground mt-1">{client.invoices.length !== 1 ? t("invoiceCountPlural", { count: client.invoices.length }) : t("invoiceCount", { count: client.invoices.length })}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Paid</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("paid")}</p>
             <p className="text-2xl font-bold mt-1 text-emerald-600">{formatCurrency(totalPaid, currency)}</p>
-            <p className="text-xs text-muted-foreground mt-1">{client.invoices.filter((i) => i.status === "paid").length} paid</p>
+            <p className="text-xs text-muted-foreground mt-1">{t("paidCount", { count: client.invoices.filter((i) => i.status === "paid").length })}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Outstanding</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{td("outstanding")}</p>
             <p className="text-2xl font-bold mt-1 text-amber-600">{formatCurrency(outstanding, currency)}</p>
-            <p className="text-xs text-muted-foreground mt-1">{client.invoices.filter((i) => i.status === "sent").length} sent</p>
+            <p className="text-xs text-muted-foreground mt-1">{t("sentCount", { count: client.invoices.filter((i) => i.status === "sent").length })}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Overdue</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{td("overdue")}</p>
             <p className="text-2xl font-bold mt-1 text-red-600">{formatCurrency(overdue, currency)}</p>
-            <p className="text-xs text-muted-foreground mt-1">{client.invoices.filter((i) => i.status === "overdue").length} overdue</p>
+            <p className="text-xs text-muted-foreground mt-1">{t("overdueCount", { count: client.invoices.filter((i) => i.status === "overdue").length })}</p>
           </CardContent>
         </Card>
       </div>
@@ -114,27 +118,27 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Contact Details</CardTitle>
+            <CardTitle>{t("contactDetails")}</CardTitle>
           </CardHeader>
           <CardContent>
             <dl className="space-y-3">
               {client.contactPerson && (
                 <div>
-                  <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Contact Person</dt>
+                  <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("contactPerson")}</dt>
                   <dd className="text-sm mt-0.5">{client.contactPerson}</dd>
                 </div>
               )}
               <div>
-                <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Email</dt>
+                <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{tc("email")}</dt>
                 <dd className="text-sm mt-0.5">{client.email || "—"}</dd>
               </div>
               <div>
-                <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Phone</dt>
+                <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{tc("phone")}</dt>
                 <dd className="text-sm mt-0.5">{client.phone || "—"}</dd>
               </div>
               {client.website && (
                 <div>
-                  <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Website</dt>
+                  <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("website")}</dt>
                   <dd className="text-sm mt-0.5">{client.website}</dd>
                 </div>
               )}
@@ -144,30 +148,30 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
 
         <Card>
           <CardHeader>
-            <CardTitle>Address & Tax</CardTitle>
+            <CardTitle>{t("addressAndTax")}</CardTitle>
           </CardHeader>
           <CardContent>
             <dl className="space-y-3">
               <div>
-                <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Address</dt>
+                <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{tc("address")}</dt>
                 <dd className="text-sm mt-0.5 whitespace-pre-line">{client.address}</dd>
               </div>
               {client.billingAddress && (
                 <div>
-                  <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Billing Address</dt>
+                  <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("billingAddress")}</dt>
                   <dd className="text-sm mt-0.5 whitespace-pre-line">{client.billingAddress}</dd>
                 </div>
               )}
               <Separator />
               <div className="flex gap-8">
                 <div>
-                  <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Country</dt>
+                  <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{tc("country")}</dt>
                   <dd className="mt-0.5">
                     <Badge variant="secondary">{client.country}</Badge>
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wider">VAT Number</dt>
+                  <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("vatNumber")}</dt>
                   <dd className="text-sm mt-0.5 font-mono">{client.taxId || "—"}</dd>
                 </div>
               </div>
@@ -180,7 +184,7 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
       {client.notes && (
         <Card>
           <CardHeader>
-            <CardTitle>Notes</CardTitle>
+            <CardTitle>{t("notes")}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm whitespace-pre-line text-muted-foreground">{client.notes}</p>
@@ -191,24 +195,24 @@ export default async function ClientDetailPage({ params }: ClientDetailPageProps
       {/* Invoice & Payment History */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Invoice & Payment History</CardTitle>
+          <CardTitle>{t("invoicePaymentHistory")}</CardTitle>
           <Button asChild size="sm">
-            <Link href={`/invoices/new?clientId=${client.id}`}>New Invoice</Link>
+            <Link href={`/invoices/new?clientId=${client.id}`}>{td("newInvoice")}</Link>
           </Button>
         </CardHeader>
         <CardContent>
           {client.invoices.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-4">No invoices yet. Create one to get started.</p>
+            <p className="text-sm text-muted-foreground py-4">{t("noInvoicesYet")}</p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Invoice #</TableHead>
-                  <TableHead>Issue Date</TableHead>
-                  <TableHead>Due Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Paid At</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
+                  <TableHead>{t("invoiceNumber")}</TableHead>
+                  <TableHead>{t("issueDate")}</TableHead>
+                  <TableHead>{t("dueDate")}</TableHead>
+                  <TableHead>{tc("status")}</TableHead>
+                  <TableHead>{t("paidAt")}</TableHead>
+                  <TableHead className="text-right">{tc("total")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

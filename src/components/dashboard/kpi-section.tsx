@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/currency";
 import { format, parse } from "date-fns";
 import { TrendingUp, TrendingDown, Clock, CheckCircle, FileText, DollarSign } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface KpiData {
   thisMonthRevenue: number;
@@ -88,8 +89,8 @@ function SparkLine({ values, color, height = 48 }: { values: number[]; color: st
   );
 }
 
-function GrowthIndicator({ value }: { value: number }) {
-  if (value === 0) return <span className="text-xs text-muted-foreground">No change</span>;
+function GrowthIndicator({ value, noChangeLabel }: { value: number; noChangeLabel: string }) {
+  if (value === 0) return <span className="text-xs text-muted-foreground">{noChangeLabel}</span>;
   const isPositive = value > 0;
   return (
     <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${isPositive ? "text-emerald-600" : "text-red-600"}`}>
@@ -113,26 +114,27 @@ function CircularProgress({ value, size = 56, strokeWidth = 5, color }: { value:
 }
 
 export function KpiSection({ kpi, monthlyRevenue }: KpiSectionProps) {
+  const t = useTranslations("dashboard.kpi");
   const revenueValues = monthlyRevenue.map((m) => m.revenue);
   const invoiceCountValues = kpi.monthlyInvoiceCounts.map((m) => m.count);
   const revenueLabels = monthlyRevenue.map((m) => formatMonth(m.month));
 
   return (
     <div className="space-y-4">
-      <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Key Performance Indicators</h2>
+      <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t("title")}</h2>
 
       {/* Revenue trend chart */}
       <Card>
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-base">Monthly Revenue</CardTitle>
-            <GrowthIndicator value={kpi.revenueGrowth} />
+            <CardTitle className="text-base">{t("monthlyRevenue")}</CardTitle>
+            <GrowthIndicator value={kpi.revenueGrowth} noChangeLabel={t("noChange")} />
           </div>
         </CardHeader>
         <CardContent>
           <div className="mb-2">
             <span className="text-2xl font-bold">{formatCurrency(kpi.thisMonthRevenue)}</span>
-            <span className="text-sm text-muted-foreground ml-2">this month</span>
+            <span className="text-sm text-muted-foreground ml-2">{t("thisMonth")}</span>
           </div>
           <div style={{ height: 80 }}>
             <MiniBar values={revenueValues} color="#10b981" height={80} />
@@ -154,9 +156,9 @@ export function KpiSection({ kpi, monthlyRevenue }: KpiSectionProps) {
           <CardContent className="pt-5 pb-4">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Avg Days to Pay</p>
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{t("avgDaysToPay")}</p>
                 <p className="text-2xl font-bold mt-1">{kpi.avgDSO}<span className="text-sm font-normal text-muted-foreground ml-0.5">d</span></p>
-                <p className="text-xs text-muted-foreground">DSO</p>
+                <p className="text-xs text-muted-foreground">{t("dso")}</p>
               </div>
               <div className="rounded-lg p-2 bg-blue-50">
                 <Clock className="h-4 w-4 text-blue-600" />
@@ -170,9 +172,9 @@ export function KpiSection({ kpi, monthlyRevenue }: KpiSectionProps) {
           <CardContent className="pt-5 pb-4">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Collection Rate</p>
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{t("collectionRate")}</p>
                 <p className="text-2xl font-bold mt-1">{kpi.collectionRate}<span className="text-sm font-normal text-muted-foreground ml-0.5">%</span></p>
-                <p className="text-xs text-muted-foreground">paid vs overdue</p>
+                <p className="text-xs text-muted-foreground">{t("paidVsOverdue")}</p>
               </div>
               <div className="relative flex items-center justify-center">
                 <CircularProgress value={kpi.collectionRate} color={kpi.collectionRate >= 80 ? "#10b981" : kpi.collectionRate >= 60 ? "#f59e0b" : "#ef4444"} />
@@ -187,9 +189,9 @@ export function KpiSection({ kpi, monthlyRevenue }: KpiSectionProps) {
           <CardContent className="pt-5 pb-4">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Avg Invoice</p>
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{t("avgInvoice")}</p>
                 <p className="text-xl font-bold mt-1">{formatCurrency(kpi.avgInvoiceValue)}</p>
-                <p className="text-xs text-muted-foreground">per invoice</p>
+                <p className="text-xs text-muted-foreground">{t("perInvoice")}</p>
               </div>
               <div className="rounded-lg p-2 bg-violet-50">
                 <DollarSign className="h-4 w-4 text-violet-600" />
@@ -203,14 +205,14 @@ export function KpiSection({ kpi, monthlyRevenue }: KpiSectionProps) {
           <CardContent className="pt-5 pb-4">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Invoices This Month</p>
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{t("invoicesThisMonth")}</p>
                 <p className="text-2xl font-bold mt-1">{kpi.thisMonthCount}</p>
                 <p className="text-xs text-muted-foreground">
                   {kpi.lastMonthCount > 0 ? (
                     kpi.thisMonthCount >= kpi.lastMonthCount
-                      ? `+${kpi.thisMonthCount - kpi.lastMonthCount} vs last month`
-                      : `${kpi.thisMonthCount - kpi.lastMonthCount} vs last month`
-                  ) : "first month"}
+                      ? `+${kpi.thisMonthCount - kpi.lastMonthCount} ${t("vsLastMonth")}`
+                      : `${kpi.thisMonthCount - kpi.lastMonthCount} ${t("vsLastMonth")}`
+                  ) : t("firstMonth")}
                 </p>
               </div>
               <div className="rounded-lg p-2 bg-slate-50">

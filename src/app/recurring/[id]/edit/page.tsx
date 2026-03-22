@@ -2,12 +2,14 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { PageHeader } from "@/components/layout/page-header";
 import { RecurringForm } from "@/components/recurring/recurring-form";
+import { getTranslations } from "next-intl/server";
 
 interface EditRecurringPageProps {
   params: Promise<{ id: string }>;
 }
 
 export default async function EditRecurringPage({ params }: EditRecurringPageProps) {
+  const t = await getTranslations("recurring");
   const { id } = await params;
 
   const [recurring, clients, services] = await Promise.all([
@@ -23,7 +25,7 @@ export default async function EditRecurringPage({ params }: EditRecurringPagePro
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Edit Recurring Invoice" />
+      <PageHeader title={t("editRecurring")} />
       <RecurringForm
         clients={clients.map((c) => ({ id: c.id, name: c.name }))}
         services={services.map((s) => ({

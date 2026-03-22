@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { clientSchema, type ClientInput } from "@/lib/validators";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,6 +55,8 @@ interface ClientFormProps {
 export function ClientForm({ initialData, onSuccess }: ClientFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const t = useTranslations("clients");
+  const tc = useTranslations("common");
 
   const {
     register,
@@ -109,11 +112,11 @@ export function ClientForm({ initialData, onSuccess }: ClientFormProps) {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-2xl">
       <Card>
         <CardHeader>
-          <CardTitle>Company Details</CardTitle>
+          <CardTitle>{t("companyDetails")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Company / Client Name</Label>
+            <Label htmlFor="name">{t("companyClientName")}</Label>
             <Input id="name" {...register("name")} />
             {errors.name && (
               <p className="text-sm text-destructive">{errors.name.message}</p>
@@ -121,26 +124,26 @@ export function ClientForm({ initialData, onSuccess }: ClientFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="contactPerson">Contact Person</Label>
-            <Input id="contactPerson" {...register("contactPerson")} placeholder="Optional" />
+            <Label htmlFor="contactPerson">{t("contactPerson")}</Label>
+            <Input id="contactPerson" {...register("contactPerson")} placeholder={tc("optional")} />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{tc("email")}</Label>
               <Input id="email" type="email" {...register("email")} />
               {errors.email && (
                 <p className="text-sm text-destructive">{errors.email.message}</p>
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
+              <Label htmlFor="phone">{tc("phone")}</Label>
               <Input id="phone" {...register("phone")} />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="website">Website</Label>
+            <Label htmlFor="website">{t("website")}</Label>
             <Input id="website" {...register("website")} placeholder="https://" />
           </div>
         </CardContent>
@@ -148,11 +151,11 @@ export function ClientForm({ initialData, onSuccess }: ClientFormProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Address & Tax</CardTitle>
+          <CardTitle>{t("addressAndTax")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="address">Address</Label>
+            <Label htmlFor="address">{tc("address")}</Label>
             <Textarea id="address" {...register("address")} rows={3} />
             {errors.address && (
               <p className="text-sm text-destructive">{errors.address.message}</p>
@@ -160,18 +163,18 @@ export function ClientForm({ initialData, onSuccess }: ClientFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="billingAddress">Billing Address</Label>
+            <Label htmlFor="billingAddress">{t("billingAddress")}</Label>
             <Textarea
               id="billingAddress"
               {...register("billingAddress")}
               rows={3}
-              placeholder="Leave empty to use the address above"
+              placeholder={t("billingAddressPlaceholder")}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="country">Country</Label>
+              <Label htmlFor="country">{tc("country")}</Label>
               <Select id="country" {...register("country")}>
                 {COUNTRIES.map((c) => (
                   <option key={c.code} value={c.code}>
@@ -184,8 +187,8 @@ export function ClientForm({ initialData, onSuccess }: ClientFormProps) {
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="taxId">VAT Number</Label>
-              <Input id="taxId" {...register("taxId")} placeholder="e.g. DE123456789" />
+              <Label htmlFor="taxId">{t("vatNumber")}</Label>
+              <Input id="taxId" {...register("taxId")} placeholder={t("vatPlaceholder")} />
             </div>
           </div>
         </CardContent>
@@ -193,27 +196,27 @@ export function ClientForm({ initialData, onSuccess }: ClientFormProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Notes</CardTitle>
+          <CardTitle>{t("notes")}</CardTitle>
         </CardHeader>
         <CardContent>
-          <Textarea id="notes" {...register("notes")} rows={3} placeholder="Internal notes about this client..." />
+          <Textarea id="notes" {...register("notes")} rows={3} placeholder={t("notesPlaceholder")} />
         </CardContent>
       </Card>
 
       <div className="flex gap-4">
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting
-            ? "Saving..."
+            ? tc("saving")
             : initialData
-              ? "Update Client"
-              : "Create Client"}
+              ? t("updateClient")
+              : t("createClient")}
         </Button>
         <Button
           type="button"
           variant="outline"
           onClick={() => router.push("/clients")}
         >
-          Cancel
+          {tc("cancel")}
         </Button>
       </div>
     </form>

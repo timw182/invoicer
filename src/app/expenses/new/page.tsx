@@ -10,11 +10,14 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Upload, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface Category { id: string; name: string; type: string; }
 interface Account { id: string; name: string; }
 
 export default function NewExpensePage() {
+  const t = useTranslations("expenses");
+  const tc = useTranslations("common");
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
@@ -47,7 +50,7 @@ export default function NewExpensePage() {
   function handleReceiptUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 1024 * 1024) { alert("Receipt must be under 1MB"); return; }
+    if (file.size > 1024 * 1024) { alert(t("receiptTooLarge")); return; }
     const reader = new FileReader();
     reader.onload = () => setReceiptUrl(reader.result as string);
     reader.readAsDataURL(file);
@@ -85,45 +88,45 @@ export default function NewExpensePage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Add Expense" />
+      <PageHeader title={t("addExpense")} />
       <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
         <Card>
-          <CardHeader><CardTitle>Expense Details</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{t("expenseDetails")}</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>Description</Label>
-              <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What was this expense for?" required />
+              <Label>{tc("description")}</Label>
+              <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder={t("whatExpenseFor")} required />
             </div>
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label>Net Amount</Label>
+                <Label>{t("netAmount")}</Label>
                 <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" step="0.01" min="0" required />
               </div>
               <div className="space-y-2">
-                <Label>Tax Rate %</Label>
+                <Label>{t("taxRatePercent")}</Label>
                 <Input type="number" value={taxRate} onChange={(e) => setTaxRate(e.target.value)} placeholder="19" step="0.01" min="0" />
               </div>
               <div className="space-y-2">
-                <Label>Total (incl. tax)</Label>
+                <Label>{t("totalInclTax")}</Label>
                 <Input value={totalAmount.toFixed(2)} disabled className="bg-muted" />
               </div>
             </div>
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label>Date</Label>
+                <Label>{tc("date")}</Label>
                 <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
               </div>
               <div className="space-y-2">
                 <Label>Category</Label>
                 <Select value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
-                  <option value="">Select...</option>
+                  <option value="">{tc("select")}</option>
                   {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Bank Account</Label>
+                <Label>{t("bankAccount")}</Label>
                 <Select value={accountId} onChange={(e) => setAccountId(e.target.value)}>
-                  <option value="">Select...</option>
+                  <option value="">{tc("select")}</option>
                   {accounts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
                 </Select>
               </div>
@@ -132,7 +135,7 @@ export default function NewExpensePage() {
         </Card>
 
         <Card>
-          <CardHeader><CardTitle>Receipt</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{t("receipt")}</CardTitle></CardHeader>
           <CardContent>
             <div className="flex items-center gap-4">
               {receiptUrl ? (
@@ -151,24 +154,24 @@ export default function NewExpensePage() {
               <div>
                 <input ref={fileInputRef} type="file" accept="image/*" onChange={handleReceiptUpload} className="hidden" id="receipt-upload" />
                 <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-                  {receiptUrl ? "Change" : "Upload Receipt"}
+                  {receiptUrl ? t("change") : t("uploadReceipt")}
                 </Button>
-                <p className="mt-1 text-xs text-muted-foreground">Image, max 1MB</p>
+                <p className="mt-1 text-xs text-muted-foreground">{t("imageMax1MB")}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader><CardTitle>Notes</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{tc("notes")}</CardTitle></CardHeader>
           <CardContent>
             <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Additional notes..." rows={2} />
           </CardContent>
         </Card>
 
         <div className="flex gap-3">
-          <Button type="submit" disabled={loading}>{loading ? "Saving..." : "Add Expense"}</Button>
-          <Button type="button" variant="outline" onClick={() => router.push("/expenses")}>Cancel</Button>
+          <Button type="submit" disabled={loading}>{loading ? tc("saving") : t("addExpense")}</Button>
+          <Button type="button" variant="outline" onClick={() => router.push("/expenses")}>{tc("cancel")}</Button>
         </div>
       </form>
     </div>

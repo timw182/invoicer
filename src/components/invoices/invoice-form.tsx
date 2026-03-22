@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -106,6 +107,8 @@ export function InvoiceForm({
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [templates, setTemplates] = useState<TemplateOption[]>([]);
+  const t = useTranslations("invoices");
+  const tc = useTranslations("common");
 
   useEffect(() => {
     if (!initialData) {
@@ -242,7 +245,7 @@ export function InvoiceForm({
   }
 
   function applyTemplate(templateId: string) {
-    const tpl = templates.find((t) => t.id === templateId);
+    const tpl = templates.find((tmpl) => tmpl.id === templateId);
     if (!tpl) return;
     const zeroTax = businessProfile.smallBusinessExemption || isReverseCharge;
     const newItems: LineItemData[] = tpl.lineItems.map((li) => ({
@@ -257,13 +260,13 @@ export function InvoiceForm({
     setLineItems(newItems);
   }
 
-  async function handleSubmit(sendAfterSave: boolean) {
+  async function handleFormSubmit(sendAfterSave: boolean) {
     if (!clientId) {
-      alert("Please select a client.");
+      alert(t("form.selectClientAlert"));
       return;
     }
     if (effectiveLineItems.length === 0) {
-      alert("Please add at least one line item.");
+      alert(t("form.addLineItemAlert"));
       return;
     }
 
@@ -330,18 +333,18 @@ export function InvoiceForm({
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Invoice Details</CardTitle>
+          <CardTitle>{t("form.invoiceDetails")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="client">Client</Label>
+              <Label htmlFor="client">{t("form.client")}</Label>
               <Select
                 id="client"
                 value={clientId}
                 onChange={(e) => setClientId(e.target.value)}
               >
-                <option value="">Select a client...</option>
+                <option value="">{t("form.selectClient")}</option>
                 {clients.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
@@ -350,15 +353,15 @@ export function InvoiceForm({
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="invoiceType">Invoice Type</Label>
+              <Label htmlFor="invoiceType">{t("form.invoiceType")}</Label>
               <Select id="invoiceType" value={invoiceType} onChange={(e) => setInvoiceType(e.target.value)}>
-                <option value="standard">Standard Invoice</option>
-                <option value="credit_note">Credit Note</option>
-                <option value="corrective">Corrective Invoice</option>
+                <option value="standard">{t("form.standardInvoice")}</option>
+                <option value="credit_note">{t("form.creditNote")}</option>
+                <option value="corrective">{t("form.correctiveInvoice")}</option>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="currency">Currency</Label>
+              <Label htmlFor="currency">{t("form.currency")}</Label>
               <Select
                 id="currency"
                 value={currency}
@@ -372,7 +375,7 @@ export function InvoiceForm({
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="issueDate">Issue Date</Label>
+              <Label htmlFor="issueDate">{t("form.issueDate")}</Label>
               <Input
                 id="issueDate"
                 type="date"
@@ -381,7 +384,7 @@ export function InvoiceForm({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="supplyDate">Supply Date (optional)</Label>
+              <Label htmlFor="supplyDate">{t("form.supplyDate")}</Label>
               <Input
                 id="supplyDate"
                 type="date"
@@ -390,7 +393,7 @@ export function InvoiceForm({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="paymentTermDays">Payment Terms (days)</Label>
+              <Label htmlFor="paymentTermDays">{t("form.paymentTerms")}</Label>
               <Input
                 id="paymentTermDays"
                 type="number"
@@ -404,19 +407,19 @@ export function InvoiceForm({
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="customerReference">Customer Reference / PO Number (optional)</Label>
+              <Label htmlFor="customerReference">{t("form.customerReference")}</Label>
               <Input
                 id="customerReference"
                 value={customerReference}
                 onChange={(e) => setCustomerReference(e.target.value)}
-                placeholder="e.g. PO-2026-001"
+                placeholder={t("form.customerReferencePlaceholder")}
               />
             </div>
             {currency !== businessProfile.defaultCurrency && (
               <div className="space-y-2">
                 <Label htmlFor="exchangeRate">
-                  Exchange Rate (1 {businessProfile.defaultCurrency} = ? {currency})
-                  {fetchingRate && <span className="ml-1 text-xs text-muted-foreground">fetching...</span>}
+                  {t("form.exchangeRate", { from: businessProfile.defaultCurrency, to: currency })}
+                  {fetchingRate && <span className="ml-1 text-xs text-muted-foreground">{t("form.fetching")}</span>}
                 </Label>
                 <Input
                   id="exchangeRate"
@@ -425,7 +428,7 @@ export function InvoiceForm({
                   min="0"
                   value={exchangeRate}
                   onChange={(e) => setExchangeRate(e.target.value)}
-                  placeholder="Auto-fetched from ECB"
+                  placeholder={t("form.exchangeRatePlaceholder")}
                 />
               </div>
             )}
@@ -435,14 +438,13 @@ export function InvoiceForm({
 
       {isReverseCharge && (
         <div className="rounded-md border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
-          Reverse charge applies: VAT will not be charged. The recipient is
-          liable for VAT.
+          {t("form.reverseCharge")}
         </div>
       )}
 
       {businessProfile.smallBusinessExemption && (
         <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-          Small business exemption active: No VAT will be charged.
+          {t("form.smallBusinessExemption")}
           {businessProfile.exemptionNote && (
             <span className="block mt-1">{businessProfile.exemptionNote}</span>
           )}
@@ -452,7 +454,7 @@ export function InvoiceForm({
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Line Items</CardTitle>
+            <CardTitle>{t("form.lineItems")}</CardTitle>
             {!initialData && templates.length > 0 && (
               <div className="flex items-center gap-2">
                 <FileStack className="h-4 w-4 text-muted-foreground" />
@@ -463,9 +465,9 @@ export function InvoiceForm({
                   }}
                   className="w-48 h-8 text-xs"
                 >
-                  <option value="">Load template...</option>
-                  {templates.map((t) => (
-                    <option key={t.id} value={t.id}>{t.name}</option>
+                  <option value="">{t("form.loadTemplate")}</option>
+                  {templates.map((tmpl) => (
+                    <option key={tmpl.id} value={tmpl.id}>{tmpl.name}</option>
                   ))}
                 </Select>
               </div>
@@ -474,14 +476,14 @@ export function InvoiceForm({
         </CardHeader>
         <CardContent>
           <div className="mb-3 hidden lg:grid grid-cols-[2fr_3fr_1fr_1fr_1fr_1fr_1fr_2fr_auto] gap-2 text-xs font-medium text-muted-foreground">
-            <div>Service</div>
-            <div>Description</div>
-            <div>Qty</div>
+            <div>{t("form.service")}</div>
+            <div>{tc("description")}</div>
+            <div>{t("form.qty")}</div>
             <div>Unit</div>
-            <div>Price</div>
-            <div>Disc %</div>
-            <div>Tax %</div>
-            <div>Amounts</div>
+            <div>{t("form.price")}</div>
+            <div>{t("form.discPercent")}</div>
+            <div>{t("form.taxPercent")}</div>
+            <div>{t("form.amounts")}</div>
             <div className="w-8" />
           </div>
           {effectiveLineItems.map((item, index) => (
@@ -496,29 +498,29 @@ export function InvoiceForm({
             />
           ))}
           <Button type="button" variant="outline" onClick={addLineItem}>
-            + Add Line Item
+            {t("form.addLineItem")}
           </Button>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Summary</CardTitle>
+          <CardTitle>{t("form.summary")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex justify-between text-sm">
-            <span>Subtotal (Net)</span>
+            <span>{t("form.subtotalNet")}</span>
             <span>{formatCurrency(totals.subtotal, currency)}</span>
           </div>
           {vatBreakdown.map((vb) => (
             <div key={vb.rate} className="flex justify-between text-sm">
-              <span>VAT {vb.rate}%</span>
+              <span>{t("form.vat", { rate: vb.rate })}</span>
               <span>{formatCurrency(vb.vatTotal, currency)}</span>
             </div>
           ))}
           <Separator />
           <div className="flex justify-between font-bold text-lg">
-            <span>Total</span>
+            <span>{tc("total")}</span>
             <span>{formatCurrency(totals.total, currency)}</span>
           </div>
         </CardContent>
@@ -526,13 +528,13 @@ export function InvoiceForm({
 
       <Card>
         <CardHeader>
-          <CardTitle>Notes</CardTitle>
+          <CardTitle>{tc("notes")}</CardTitle>
         </CardHeader>
         <CardContent>
           <Textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Additional notes for the invoice..."
+            placeholder={t("form.notesPlaceholder")}
             rows={3}
           />
         </CardContent>
@@ -544,14 +546,14 @@ export function InvoiceForm({
           variant="outline"
           onClick={() => router.push("/invoices")}
         >
-          Cancel
+          {tc("cancel")}
         </Button>
         <Button
           type="button"
           disabled={loading}
-          onClick={() => handleSubmit(false)}
+          onClick={() => handleFormSubmit(false)}
         >
-          {loading ? "Saving..." : "Save Invoice"}
+          {loading ? tc("saving") : t("form.saveInvoice")}
         </Button>
       </div>
     </div>

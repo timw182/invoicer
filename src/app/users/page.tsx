@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,8 @@ interface UserRecord {
 }
 
 export default function UsersPage() {
+  const t = useTranslations("users");
+  const tc = useTranslations("common");
   const { user } = useAuth();
   const router = useRouter();
   const [users, setUsers] = useState<UserRecord[]>([]);
@@ -51,7 +54,7 @@ export default function UsersPage() {
   };
 
   const deleteUser = async (u: UserRecord) => {
-    if (!confirm(`Delete user "${u.name}"?`)) return;
+    if (!confirm(t("deleteConfirm", { name: u.name }))) return;
     const res = await fetch(`/api/users/${u.id}`, { method: "DELETE" });
     if (res.ok) {
       setUsers((prev) => prev.filter((x) => x.id !== u.id));
@@ -61,7 +64,7 @@ export default function UsersPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Users" description="Manage user accounts" />
+        <PageHeader title={t("title")} description={t("descriptionShort")} />
         <Card>
           <CardContent className="p-8">
             <div className="h-32 animate-pulse rounded bg-muted" />
@@ -74,13 +77,13 @@ export default function UsersPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Users"
-        description="Manage user accounts and roles"
+        title={t("title")}
+        description={t("description")}
         action={
           <Link href="/users/new">
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              Add User
+              {t("addUser")}
             </Button>
           </Link>
         }
@@ -91,11 +94,11 @@ export default function UsersPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b text-left text-sm text-muted-foreground">
-                <th className="px-4 py-3 font-medium">User</th>
-                <th className="px-4 py-3 font-medium">Role</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 font-medium">Created</th>
-                <th className="px-4 py-3 font-medium w-24">Actions</th>
+                <th className="px-4 py-3 font-medium">{t("user")}</th>
+                <th className="px-4 py-3 font-medium">{tc("role")}</th>
+                <th className="px-4 py-3 font-medium">{tc("status")}</th>
+                <th className="px-4 py-3 font-medium">{tc("created")}</th>
+                <th className="px-4 py-3 font-medium w-24">{tc("actions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -110,15 +113,15 @@ export default function UsersPage() {
                   <td className="px-4 py-3">
                     <Badge variant={u.role === "admin" ? "default" : "secondary"} className="text-xs">
                       {u.role === "admin" ? (
-                        <><Shield className="h-3 w-3 mr-1" /> Admin</>
+                        <><Shield className="h-3 w-3 mr-1" /> {t("admin")}</>
                       ) : (
-                        <><User className="h-3 w-3 mr-1" /> User</>
+                        <><User className="h-3 w-3 mr-1" /> {t("user")}</>
                       )}
                     </Badge>
                   </td>
                   <td className="px-4 py-3">
                     <Badge variant={u.active ? "secondary" : "outline"} className="text-xs">
-                      {u.active ? "Active" : "Inactive"}
+                      {u.active ? tc("active") : tc("inactive")}
                     </Badge>
                   </td>
                   <td className="px-4 py-3 text-sm text-muted-foreground">
@@ -132,7 +135,7 @@ export default function UsersPage() {
                           size="sm"
                           onClick={() => toggleActive(u)}
                         >
-                          {u.active ? "Disable" : "Enable"}
+                          {u.active ? t("disable") : t("enable")}
                         </Button>
                         <Button
                           variant="ghost"
@@ -140,7 +143,7 @@ export default function UsersPage() {
                           className="text-red-600 hover:text-red-700"
                           onClick={() => deleteUser(u)}
                         >
-                          Delete
+                          {tc("delete")}
                         </Button>
                       </div>
                     )}

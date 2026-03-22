@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -37,6 +38,8 @@ function formatMonth(monthStr: string): string {
 }
 
 export default function CashflowPage() {
+  const t = useTranslations("reports");
+  const tc = useTranslations("common");
   const [report, setReport] = useState<CashflowReport | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -51,7 +54,7 @@ export default function CashflowPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Cash Flow" description="Cash inflows, outflows, and projections" />
+        <PageHeader title={t("cashFlowReport.title")} description={t("cashFlowReport.description")} />
         <Card><CardContent className="p-5"><div className="h-48 animate-pulse rounded bg-muted" /></CardContent></Card>
       </div>
     );
@@ -60,8 +63,8 @@ export default function CashflowPage() {
   if (!report) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Cash Flow" description="Cash inflows, outflows, and projections" />
-        <Card><CardContent className="p-8 text-center text-muted-foreground">Failed to load report.</CardContent></Card>
+        <PageHeader title={t("cashFlowReport.title")} description={t("cashFlowReport.description")} />
+        <Card><CardContent className="p-8 text-center text-muted-foreground">{tc("failedToLoad")}</CardContent></Card>
       </div>
     );
   }
@@ -71,25 +74,25 @@ export default function CashflowPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Cash Flow" description="Cash inflows, outflows, and projections" />
+      <PageHeader title={t("cashFlowReport.title")} description={t("cashFlowReport.description")} />
 
       {/* Summary */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <Card>
           <CardContent className="pt-6">
-            <p className="text-xs font-medium text-muted-foreground uppercase">Total Inflow</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase">{t("cashFlowReport.totalInflow")}</p>
             <p className="text-xl font-bold text-emerald-600 mt-1">{formatCurrency(s.totalInflow)}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-xs font-medium text-muted-foreground uppercase">Total Outflow</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase">{t("cashFlowReport.totalOutflow")}</p>
             <p className="text-xl font-bold text-red-600 mt-1">{formatCurrency(s.totalOutflow)}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-xs font-medium text-muted-foreground uppercase">Net Cash Flow</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase">{t("cashFlowReport.netCashFlow")}</p>
             <p className={`text-xl font-bold mt-1 ${s.netCashflow >= 0 ? "text-emerald-600" : "text-red-600"}`}>
               {formatCurrency(s.netCashflow)}
             </p>
@@ -97,13 +100,13 @@ export default function CashflowPage() {
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-xs font-medium text-muted-foreground uppercase">Expected (Outstanding)</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase">{t("cashFlowReport.expectedOutstanding")}</p>
             <p className="text-xl font-bold text-blue-600 mt-1">{formatCurrency(s.totalProjectedInflow)}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-xs font-medium text-muted-foreground uppercase">Due in 30 Days</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase">{t("cashFlowReport.dueIn30Days")}</p>
             <p className="text-xl font-bold text-amber-600 mt-1">{formatCurrency(s.upcomingReceivables30d)}</p>
           </CardContent>
         </Card>
@@ -111,7 +114,7 @@ export default function CashflowPage() {
 
       {/* Visual Bar Chart */}
       <Card>
-        <CardHeader><CardTitle className="text-base">Monthly Cash Flow</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">{t("cashFlowReport.monthlyCashFlow")}</CardTitle></CardHeader>
         <CardContent>
           {(() => {
             const maxVal = Math.max(
@@ -139,7 +142,7 @@ export default function CashflowPage() {
                         {m.projectedInflow > 0 && (
                           <div className="flex items-center gap-2">
                             <div className="h-3 rounded-sm bg-blue-300 border border-blue-400 border-dashed" style={{ width: `${(m.projectedInflow / maxVal) * 100}%`, minWidth: 4 }} />
-                            <span className="text-xs tabular-nums text-blue-600">{formatCurrency(m.projectedInflow)} expected</span>
+                            <span className="text-xs tabular-nums text-blue-600">{formatCurrency(m.projectedInflow)} {t("cashFlowReport.expected").toLowerCase()}</span>
                           </div>
                         )}
                       </div>
@@ -150,26 +153,26 @@ export default function CashflowPage() {
             );
           })()}
           <div className="flex items-center gap-6 mt-4 pt-3 border-t">
-            <div className="flex items-center gap-1.5"><div className="h-3 w-3 rounded-sm bg-emerald-500" /><span className="text-xs text-muted-foreground">Inflow</span></div>
-            <div className="flex items-center gap-1.5"><div className="h-3 w-3 rounded-sm bg-red-400" /><span className="text-xs text-muted-foreground">Outflow</span></div>
-            <div className="flex items-center gap-1.5"><div className="h-3 w-3 rounded-sm bg-blue-300 border border-blue-400 border-dashed" /><span className="text-xs text-muted-foreground">Expected</span></div>
+            <div className="flex items-center gap-1.5"><div className="h-3 w-3 rounded-sm bg-emerald-500" /><span className="text-xs text-muted-foreground">{t("cashFlowReport.inflow")}</span></div>
+            <div className="flex items-center gap-1.5"><div className="h-3 w-3 rounded-sm bg-red-400" /><span className="text-xs text-muted-foreground">{t("cashFlowReport.outflow")}</span></div>
+            <div className="flex items-center gap-1.5"><div className="h-3 w-3 rounded-sm bg-blue-300 border border-blue-400 border-dashed" /><span className="text-xs text-muted-foreground">{t("cashFlowReport.expected")}</span></div>
           </div>
         </CardContent>
       </Card>
 
       {/* Monthly Table */}
       <Card>
-        <CardHeader><CardTitle className="text-base">Monthly Detail</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">{t("cashFlowReport.monthlyDetail")}</CardTitle></CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-xs font-semibold uppercase">Period</TableHead>
-                <TableHead className="text-xs font-semibold uppercase text-right">Inflow</TableHead>
-                <TableHead className="text-xs font-semibold uppercase text-right">Outflow</TableHead>
+                <TableHead className="text-xs font-semibold uppercase">{t("taxReport.period")}</TableHead>
+                <TableHead className="text-xs font-semibold uppercase text-right">{t("cashFlowReport.inflow")}</TableHead>
+                <TableHead className="text-xs font-semibold uppercase text-right">{t("cashFlowReport.outflow")}</TableHead>
                 <TableHead className="text-xs font-semibold uppercase text-right">Net</TableHead>
-                <TableHead className="text-xs font-semibold uppercase text-right">Projected</TableHead>
-                <TableHead className="text-xs font-semibold uppercase text-right">Cumulative</TableHead>
+                <TableHead className="text-xs font-semibold uppercase text-right">{t("cashFlowReport.projected")}</TableHead>
+                <TableHead className="text-xs font-semibold uppercase text-right">{t("cashFlowReport.cumulative")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -179,7 +182,7 @@ export default function CashflowPage() {
                   <TableRow key={m.month} className={isFuture ? "opacity-60" : ""}>
                     <TableCell className="font-medium text-sm">
                       {formatMonth(m.month)}
-                      {m.month === currentMonth && <span className="ml-1.5 text-xs text-blue-600">(current)</span>}
+                      {m.month === currentMonth && <span className="ml-1.5 text-xs text-blue-600">({tc("current")})</span>}
                     </TableCell>
                     <TableCell className="text-right tabular-nums text-sm text-emerald-600">
                       {m.inflow > 0 ? formatCurrency(m.inflow) : "—"}

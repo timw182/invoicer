@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -24,16 +25,11 @@ interface InvoiceListClientProps {
   invoices: InvoiceWithClient[];
 }
 
-const tabs = [
-  { value: "all", label: "All" },
-  { value: "draft", label: "Draft" },
-  { value: "sent", label: "Sent" },
-  { value: "paid", label: "Paid" },
-  { value: "overdue", label: "Overdue" },
-];
+const tabKeys = ["all", "draft", "sent", "paid", "overdue"] as const;
 
 export function InvoiceListClient({ invoices }: InvoiceListClientProps) {
   const [activeTab, setActiveTab] = useState("all");
+  const t = useTranslations("invoices");
 
   const filteredInvoices =
     activeTab === "all"
@@ -51,12 +47,12 @@ export function InvoiceListClient({ invoices }: InvoiceListClientProps) {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Invoices"
+        title={t("title")}
         action={
           <Link href="/invoices/new">
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              New Invoice
+              {t("newInvoice")}
             </Button>
           </Link>
         }
@@ -64,12 +60,12 @@ export function InvoiceListClient({ invoices }: InvoiceListClientProps) {
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
-          {tabs.map((tab) => (
-            <TabsTrigger key={tab.value} value={tab.value}>
-              {tab.label}
-              {counts[tab.value as keyof typeof counts] > 0 && (
+          {tabKeys.map((key) => (
+            <TabsTrigger key={key} value={key}>
+              {t(`tabs.${key}`)}
+              {counts[key] > 0 && (
                 <span className="ml-1.5 text-xs text-muted-foreground">
-                  {counts[tab.value as keyof typeof counts]}
+                  {counts[key]}
                 </span>
               )}
             </TabsTrigger>

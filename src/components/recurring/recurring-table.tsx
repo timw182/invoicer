@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   Table,
   TableBody,
@@ -43,6 +44,8 @@ function estimateTotal(lineItems: RecurringInvoice["lineItems"]): number {
 
 export function RecurringTable({ items }: RecurringTableProps) {
   const router = useRouter();
+  const t = useTranslations("recurring");
+  const tc = useTranslations("common");
 
   if (items.length === 0) {
     return (
@@ -50,8 +53,8 @@ export function RecurringTable({ items }: RecurringTableProps) {
         <div className="rounded-full bg-muted p-3 mb-3">
           <Repeat className="h-6 w-6 text-muted-foreground" />
         </div>
-        <p className="text-sm font-medium text-muted-foreground">No recurring invoices</p>
-        <p className="text-xs text-muted-foreground mt-1">Create one to automate invoice generation</p>
+        <p className="text-sm font-medium text-muted-foreground">{t("noRecurring")}</p>
+        <p className="text-xs text-muted-foreground mt-1">{t("createToAutomate")}</p>
       </div>
     );
   }
@@ -60,13 +63,13 @@ export function RecurringTable({ items }: RecurringTableProps) {
     <Table>
       <TableHeader>
         <TableRow className="hover:bg-transparent">
-          <TableHead className="text-xs font-semibold uppercase tracking-wider">Name</TableHead>
-          <TableHead className="text-xs font-semibold uppercase tracking-wider">Client</TableHead>
-          <TableHead className="text-xs font-semibold uppercase tracking-wider">Frequency</TableHead>
-          <TableHead className="text-xs font-semibold uppercase tracking-wider">Next Date</TableHead>
-          <TableHead className="text-xs font-semibold uppercase tracking-wider text-right">Est. Amount</TableHead>
-          <TableHead className="text-xs font-semibold uppercase tracking-wider">Generated</TableHead>
-          <TableHead className="text-xs font-semibold uppercase tracking-wider">Status</TableHead>
+          <TableHead className="text-xs font-semibold uppercase tracking-wider">{tc("name")}</TableHead>
+          <TableHead className="text-xs font-semibold uppercase tracking-wider">{t("client")}</TableHead>
+          <TableHead className="text-xs font-semibold uppercase tracking-wider">{t("frequency")}</TableHead>
+          <TableHead className="text-xs font-semibold uppercase tracking-wider">{t("nextDate")}</TableHead>
+          <TableHead className="text-xs font-semibold uppercase tracking-wider text-right">{t("estAmount")}</TableHead>
+          <TableHead className="text-xs font-semibold uppercase tracking-wider">{t("generated")}</TableHead>
+          <TableHead className="text-xs font-semibold uppercase tracking-wider">{tc("status")}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -95,11 +98,11 @@ export function RecurringTable({ items }: RecurringTableProps) {
             <TableCell>
               <div className="flex items-center gap-2">
                 <Badge variant={item.active ? "default" : "secondary"} className="text-xs">
-                  {item.active ? "Active" : "Paused"}
+                  {item.active ? tc("active") : tc("paused")}
                 </Badge>
                 {item.autoSend && (
                   <Badge variant="outline" className="text-xs text-blue-600 border-blue-200">
-                    Auto-send
+                    {t("autoSendLabel")}
                   </Badge>
                 )}
               </div>

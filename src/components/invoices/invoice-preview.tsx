@@ -1,6 +1,9 @@
+"use client";
+
 import { formatDate } from "@/lib/utils";
 import { formatCurrency } from "@/lib/currency";
 import { getVatBreakdown } from "@/lib/vat";
+import { useTranslations } from "next-intl";
 
 interface LineItem {
   id: string;
@@ -24,10 +27,10 @@ interface Branding {
   bankBic?: string | null;
 }
 
-const INVOICE_TYPE_LABELS: Record<string, string> = {
-  standard: "INVOICE",
-  credit_note: "CREDIT NOTE",
-  corrective: "CORRECTIVE INVOICE",
+const INVOICE_TYPE_KEYS: Record<string, string> = {
+  standard: "invoice",
+  credit_note: "creditNote",
+  corrective: "correctiveInvoice",
 };
 
 interface InvoicePreviewProps {
@@ -65,6 +68,7 @@ interface InvoicePreviewProps {
 }
 
 export function InvoicePreview({ invoice, branding }: InvoicePreviewProps) {
+  const t = useTranslations("invoices.preview");
   const accentColor = branding?.accentColor || "hsl(var(--primary))";
 
   const vatBreakdown = getVatBreakdown(
@@ -108,12 +112,12 @@ export function InvoicePreview({ invoice, branding }: InvoicePreviewProps) {
               </p>
               {invoice.supplierVatId && (
                 <p className="text-sm text-muted-foreground mt-1">
-                  VAT ID: {invoice.supplierVatId}
+                  {t("vatId")} {invoice.supplierVatId}
                 </p>
               )}
               {invoice.supplierCountry && (
                 <p className="text-sm text-muted-foreground mt-0.5">
-                  Country: {invoice.supplierCountry}
+                  {t("countryLabel")} {invoice.supplierCountry}
                 </p>
               )}
             </div>
@@ -123,25 +127,25 @@ export function InvoicePreview({ invoice, branding }: InvoicePreviewProps) {
               className="text-3xl font-bold tracking-tight mb-3"
               style={{ color: accentColor }}
             >
-              {INVOICE_TYPE_LABELS[invoice.invoiceType || "standard"] || "INVOICE"}
+              {t(INVOICE_TYPE_KEYS[invoice.invoiceType || "standard"] || "invoice")}
             </h1>
             <div className="text-sm space-y-1.5">
               <div className="flex justify-end gap-2">
-                <span className="text-muted-foreground">No.</span>
+                <span className="text-muted-foreground">{t("no")}</span>
                 <span className="font-mono font-medium">{invoice.invoiceNumber}</span>
               </div>
               <div className="flex justify-end gap-2">
-                <span className="text-muted-foreground">Date</span>
+                <span className="text-muted-foreground">{t("date")}</span>
                 <span>{formatDate(invoice.issueDate)}</span>
               </div>
               {invoice.supplyDate && (
                 <div className="flex justify-end gap-2">
-                  <span className="text-muted-foreground">Supply</span>
+                  <span className="text-muted-foreground">{t("supply")}</span>
                   <span>{formatDate(invoice.supplyDate)}</span>
                 </div>
               )}
               <div className="flex justify-end gap-2">
-                <span className="text-muted-foreground">Due</span>
+                <span className="text-muted-foreground">{t("due")}</span>
                 <span className="font-medium">{formatDate(invoice.dueDate)}</span>
               </div>
             </div>
@@ -151,7 +155,7 @@ export function InvoicePreview({ invoice, branding }: InvoicePreviewProps) {
         {/* Bill To */}
         <div className="mb-10 rounded-lg bg-muted/50 p-5">
           <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-widest mb-2">
-            Bill To
+            {t("billTo")}
           </p>
           <h3 className="font-semibold text-foreground">{invoice.clientName}</h3>
           <p className="whitespace-pre-line text-sm text-muted-foreground mt-1 leading-relaxed">
@@ -159,15 +163,15 @@ export function InvoicePreview({ invoice, branding }: InvoicePreviewProps) {
           </p>
           {invoice.clientVatId && (
             <p className="text-sm text-muted-foreground mt-1">
-              VAT ID: {invoice.clientVatId}
+              {t("vatId")} {invoice.clientVatId}
             </p>
           )}
           <p className="text-sm text-muted-foreground mt-0.5">
-            Country: {invoice.clientCountry}
+            {t("countryLabel")} {invoice.clientCountry}
           </p>
           {invoice.customerReference && (
             <p className="text-sm text-muted-foreground mt-2">
-              <span className="font-medium">Your ref:</span> {invoice.customerReference}
+              <span className="font-medium">{t("yourRef")}</span> {invoice.customerReference}
             </p>
           )}
         </div>
@@ -241,7 +245,7 @@ export function InvoicePreview({ invoice, branding }: InvoicePreviewProps) {
           <div className="w-80">
             <div className="space-y-2 text-sm">
               <div className="flex justify-between py-1">
-                <span className="text-muted-foreground">Subtotal</span>
+                <span className="text-muted-foreground">{t("subtotal")}</span>
                 <span className="tabular-nums">
                   {formatCurrency(invoice.subtotal, invoice.currency)}
                 </span>
@@ -259,7 +263,7 @@ export function InvoicePreview({ invoice, branding }: InvoicePreviewProps) {
               className="mt-3 flex justify-between border-t-2 pt-3"
               style={{ borderColor: `${accentColor}33` }}
             >
-              <span className="text-lg font-bold">Total</span>
+              <span className="text-lg font-bold">{t("total")}</span>
               <span className="text-lg font-bold tabular-nums">
                 {formatCurrency(invoice.total, invoice.currency)}
               </span>
@@ -271,7 +275,7 @@ export function InvoicePreview({ invoice, branding }: InvoicePreviewProps) {
         {invoice.exchangeRate && invoice.currency !== "EUR" && (
           <div className="flex justify-end mb-4">
             <p className="text-xs text-muted-foreground">
-              Exchange rate: 1 EUR = {invoice.exchangeRate} {invoice.currency}
+              {t("exchangeRate", { rate: invoice.exchangeRate, currency: invoice.currency })}
             </p>
           </div>
         )}
@@ -279,14 +283,14 @@ export function InvoicePreview({ invoice, branding }: InvoicePreviewProps) {
         {/* Correction reference */}
         {invoice.correctionOfInvoice && (
           <div className="mb-4 rounded-lg border border-purple-200 bg-purple-50/50 px-4 py-3 text-sm text-purple-800">
-            This {(invoice.invoiceType === "credit_note") ? "credit note" : "corrective invoice"} relates to invoice: {invoice.correctionOfInvoice}
+            {t("correctionRelates", { type: invoice.invoiceType === "credit_note" ? t("creditNoteType") : t("correctiveInvoiceType"), invoice: invoice.correctionOfInvoice })}
           </div>
         )}
 
         {/* Notices */}
         {invoice.reverseCharge && (
           <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50/50 px-4 py-3 text-sm text-blue-800">
-            Reverse charge: VAT to be accounted for by the recipient (Art. 196 EU VAT Directive).
+            {t("reverseChargeNotice")}
           </div>
         )}
 
@@ -312,18 +316,18 @@ export function InvoicePreview({ invoice, branding }: InvoicePreviewProps) {
         {hasBankDetails && (
           <div className="mt-8 pt-6 border-t">
             <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-widest mb-2">
-              Payment Details
+              {t("paymentDetails")}
             </p>
             <div className="grid grid-cols-3 gap-4 text-sm text-muted-foreground">
               {branding?.bankName && (
                 <div>
-                  <span className="text-xs uppercase tracking-wider">Bank</span>
+                  <span className="text-xs uppercase tracking-wider">{t("bank")}</span>
                   <p className="font-medium text-foreground">{branding.bankName}</p>
                 </div>
               )}
               {branding?.bankIban && (
                 <div>
-                  <span className="text-xs uppercase tracking-wider">IBAN</span>
+                  <span className="text-xs uppercase tracking-wider">{t("iban")}</span>
                   <p className="font-medium text-foreground font-mono text-xs">
                     {branding.bankIban}
                   </p>
@@ -331,7 +335,7 @@ export function InvoicePreview({ invoice, branding }: InvoicePreviewProps) {
               )}
               {branding?.bankBic && (
                 <div>
-                  <span className="text-xs uppercase tracking-wider">BIC</span>
+                  <span className="text-xs uppercase tracking-wider">{t("bic")}</span>
                   <p className="font-medium text-foreground font-mono text-xs">
                     {branding.bankBic}
                   </p>

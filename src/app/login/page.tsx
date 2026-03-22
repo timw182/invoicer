@@ -2,6 +2,7 @@
 
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,6 +18,7 @@ export default function LoginPage() {
 }
 
 function LoginForm() {
+  const t = useTranslations("login");
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
@@ -38,7 +40,7 @@ function LoginForm() {
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error || "Login failed");
+        setError(data.error || t("loginFailed"));
         return;
       }
 
@@ -46,7 +48,7 @@ function LoginForm() {
       router.push(redirectTo);
       router.refresh();
     } catch {
-      setError("Something went wrong");
+      setError(t("somethingWentWrong"));
     } finally {
       setLoading(false);
     }
@@ -58,7 +60,7 @@ function LoginForm() {
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground text-lg font-bold mb-2">
           I
         </div>
-        <CardTitle className="text-xl">Sign in to Invoicer</CardTitle>
+        <CardTitle className="text-xl">{t("title")}</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -68,7 +70,7 @@ function LoginForm() {
             </div>
           )}
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t("email")}</Label>
             <Input
               id="email"
               type="email"
@@ -80,7 +82,7 @@ function LoginForm() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t("password")}</Label>
             <Input
               id="password"
               type="password"
@@ -91,7 +93,7 @@ function LoginForm() {
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
             <LogIn className="h-4 w-4 mr-2" />
-            {loading ? "Signing in..." : "Sign in"}
+            {loading ? t("signingIn") : t("signIn")}
           </Button>
         </form>
       </CardContent>
